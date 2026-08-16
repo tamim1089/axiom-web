@@ -84,7 +84,7 @@ export function Landing() {
                   href="/app"
                   className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-ink px-8 text-lead font-medium text-paper transition-opacity hover:opacity-90 sm:w-auto"
                 >
-                  Open Axiom. It's free
+                  Try Axiom. It's free
                   <ArrowRight className="size-5" strokeWidth={2} />
                 </a>
                 <a

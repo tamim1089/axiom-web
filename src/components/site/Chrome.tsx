@@ -104,7 +104,7 @@ export function StickyCta() {
         tabIndex={show ? 0 : -1}
         className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-ink text-lead font-medium text-paper"
       >
-        Open Axiom. It's free
+        Try Axiom. It's free
         <ArrowRight className="size-5" strokeWidth={2} />
       </a>
     </div>
