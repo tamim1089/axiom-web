@@ -1,0 +1,53 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.processing]
+  # Pages are already emitted as directories (app/index.html), so paths are
+  # extensionless by construction. Pretty URLs stays on to strip any stray
+  # /index.html a link might still point at.
+  skip_processing = false
+
+[build.processing.html]
+  # Off: Netlify's pretty-URL handling 301s /app to /app/, which turns every
+  # old link into a two-hop chain (/app.html -> /app -> /app/). The explicit
+  # 200 rewrites in _redirects serve the directory index at the bare path
+  # instead, so /app is a real page rather than a redirect to one.
+  pretty_urls = false
+
+# Security headers that a <meta> CSP cannot set. The per-page CSP lives in the
+# HTML so the app and marketing pages can differ; these apply everywhere.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+    X-Frame-Options = "DENY"
+    # frame-ancestors only works as a real header; in a <meta> CSP browsers
+    # ignore it and log a warning on every page load.
+    Content-Security-Policy = "frame-ancestors 'none'"
+
+# The worker must be allowed to control the whole origin, not just /assets.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/"
+
+# Vite content-hashes these filenames, so the bytes behind a given URL can
+# never change — a year is safe and saves a revalidation round trip per asset.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/photos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

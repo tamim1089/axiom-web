@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-latin.woff2" crossorigin />
+    <link rel="apple-touch-icon" href="/logo.png" />
+<!-- One preload, not four. Marking several resources "high" makes them
+         contend for the same connection rather than prioritising any of them;
+         this is the card nearest the viewer on the first frame. -->
+    <link rel="preload" as="image" href="/photos/city-lighttrails.webp" fetchpriority="high" />
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' https://www.googletagmanager.com;
+               style-src 'self' 'unsafe-inline';
+               font-src 'self';
+               img-src 'self' data: https://www.google-analytics.com;
+               connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com;
+               frame-src https://www.google.com https://maps.google.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self'"
+    />
+
+    <title>Axiom — Your cloud. Your control.</title>
+    <meta name="description" content="A personal cloud that runs entirely in your browser and keeps your files in your own Telegram account. No server in between, no subscription, no account to create." />
+    <link rel="canonical" href="%VITE_SITE_URL%/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Axiom" />
+    <meta property="og:title" content="Axiom — Your cloud. Your control." />
+    <meta property="og:description" content="A personal cloud that runs entirely in your browser and keeps your files in your own Telegram account. No server in between, no subscription, no account to create." />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:image" content="%VITE_SITE_URL%/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Axiom — your cloud, your control" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Axiom — Your cloud. Your control." />
+    <meta name="twitter:description" content="A personal cloud that runs entirely in your browser and keeps your files in your own Telegram account. No server in between, no subscription, no account to create." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/og.jpg" />
+  </head>
+  <body>
+    <a
+      href="#main"
+      style="position:absolute;left:-9999px;top:0;padding:1rem;background:#fff;z-index:100"
+      onfocus="this.style.left='0'"
+      onblur="this.style.left='-9999px'"
+      >Skip to content</a
+    >
+    <div id="root"></div>
+    <script type="module" src="/src/entries/home.tsx"></script>
+  </body>
+</html>

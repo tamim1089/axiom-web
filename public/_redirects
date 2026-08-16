@@ -1,0 +1,22 @@
+# Serve each page at its bare path. A 200 rewrite (not a 301) means /app IS
+# the page — no redirect hop, and one canonical address with no trailing slash.
+/app             /app/index.html        200
+/privacy         /privacy/index.html    200
+/thank-you       /thank-you/index.html  200
+
+# Trailing-slash variants collapse onto the canonical form.
+/app/            /app                   301!
+/privacy/        /privacy               301!
+/thank-you/      /thank-you             301!
+
+# The .html URLs shipped in an earlier deploy. 301 them so old links keep
+# working and search engines consolidate on one address instead of indexing
+# the same page twice.
+/app.html        /app        301!
+/privacy.html    /privacy    301!
+/thank-you.html  /thank-you  301!
+/index.html      /           301!
+
+# Anything else gets the real 404 page with a real 404 status — a soft-200
+# "not found" page is worse than useless to a crawler.
+/*               /404.html   404

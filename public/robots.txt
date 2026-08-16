@@ -1,0 +1,10 @@
+# Axiom — https://axiom-cloud.netlify.app
+User-agent: *
+Allow: /
+
+# The app is a signed-in tool, not a landing page. It has nothing to index and
+# every URL under it is personal, so keep crawlers out of it.
+Disallow: /app
+Disallow: /_stream/
+
+Sitemap: https://axiom-cloud.netlify.app/sitemap.xml

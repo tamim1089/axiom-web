@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-latin.woff2" crossorigin />
+    <link rel="apple-touch-icon" href="/logo.png" />
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' https://www.googletagmanager.com;
+               style-src 'self' 'unsafe-inline';
+               font-src 'self';
+               img-src 'self' data: https://www.google-analytics.com;
+               connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com;
+               frame-src https://www.google.com https://maps.google.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self'"
+    />
+
+    <title>Page not found | Axiom</title>
+    <meta name="description" content="That page is not here. Your files are safe — they live in your Telegram account, not on this website." />
+    <link rel="canonical" href="%VITE_SITE_URL%/404" />
+    <meta name="robots" content="noindex, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Axiom" />
+    <meta property="og:title" content="Page not found | Axiom" />
+    <meta property="og:description" content="That page is not here. Your files are safe — they live in your Telegram account, not on this website." />
+    <meta property="og:url" content="%VITE_SITE_URL%/404" />
+    <meta property="og:image" content="%VITE_SITE_URL%/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Axiom — your cloud, your control" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Page not found | Axiom" />
+    <meta name="twitter:description" content="That page is not here. Your files are safe — they live in your Telegram account, not on this website." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/og.jpg" />
+  </head>
+  <body>
+    <a
+      href="#main"
+      style="position:absolute;left:-9999px;top:0;padding:1rem;background:#fff;z-index:100"
+      onfocus="this.style.left='0'"
+      onblur="this.style.left='-9999px'"
+      >Skip to content</a
+    >
+    <div id="root"></div>
+    <script type="module" src="/src/entries/not-found.tsx"></script>
+  </body>
+</html>
