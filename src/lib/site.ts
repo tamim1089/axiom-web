@@ -3,7 +3,7 @@
 export const SITE = {
   name: 'Axiom',
   tagline: 'Your cloud. Your control.',
-  /* Set VITE_SITE_URL in .env — it drives every canonical URL, Open Graph
+  /* Set VITE_SITE_URL in .env. It drives every canonical URL, Open Graph
      tag, sitemap entry and schema block, in the HTML and at runtime alike.
      Point it at the custom domain the day you attach one. */
   url: (import.meta.env.VITE_SITE_URL as string) || 'http://localhost:5173',
@@ -38,7 +38,6 @@ export const hasAddress = (): boolean => Boolean(ADDRESS.street && ADDRESS.city)
 
 export const NAV = [
   { href: '/#how', label: 'How it works' },
-  { href: '/#story', label: 'Case study' },
   { href: '/#faq', label: 'Questions' },
   { href: '/#contact', label: 'Contact' },
 ] as const

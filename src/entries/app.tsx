@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import '../index.css'
 
 /* The Telegram client. No analytics and no third-party scripts ever run on
-   this page — see lib/analytics.ts for why that boundary exists. */
+   this page, see lib/analytics.ts for why that boundary exists. */
 const QrLogin = lazy(() => import('@/components/QrLogin'))
 const DemoWorkspace = import.meta.env.DEV
   ? lazy(() => import('@/components/app/DemoWorkspace'))

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
  * A section that arrives rather than simply being there.
  *
  * Deliberately restrained: a short rise and fade, once, on the way in. The
- * point is that scrolling feels like something is happening — not that every
+ * point is that scrolling feels like something is happening, not that every
  * element performs. Anything more elaborate on every block becomes noise you
  * have to scroll past rather than read.
  *
@@ -48,7 +48,7 @@ export function Reveal({
   )
 }
 
-/** Staggered children — used where a group should land in sequence. */
+/** Staggered children, used where a group should land in sequence. */
 export function RevealGroup({
   children,
   className,

@@ -1,5 +1,5 @@
 /* ── streaming range server ───────────────────────────────────────────────
- * Media elements do not accept a callback for bytes — they take a URL and
+ * Media elements do not accept a callback for bytes. They take a URL and
  * issue HTTP Range requests against it. So to play a multi-gigabyte video that
  * lives in Telegram, something has to answer those Range requests.
  *
@@ -7,7 +7,7 @@
  * MTProto itself (the client lives in the page), it asks the page for each
  * byte range over postMessage and replies with a spec-correct response.
  *
- * The details below are not pedantry — each one is a format or a browser that
+ * The details below are not pedantry. Each one is a format or a browser that
  * silently fails without it:
  *
  *   • A request with NO Range header must get 200 and the full length. Answer
@@ -18,8 +18,8 @@
  *     those files unplayable while others work.
  *   • Filenames need RFC 5987 encoding or every non-ASCII name arrives as
  *     percent-escapes.
- *   • The window must be a size mtcute can actually serve, and the page — not
- *     this worker — decides how to fetch it.
+ *   • The window must be a size mtcute can actually serve, and the page, not
+ *     this worker, decides how to fetch it.
  * ──────────────────────────────────────────────────────────────────────── */
 
 const PREFIX = '/_stream/'
@@ -53,7 +53,7 @@ self.addEventListener('message', (event) => {
  *
  * Broadcasts to every controlled window rather than picking one. matchAll()
  * returns most-recently-focused order, so with two Axiom tabs open the wrong
- * one — the one without this file registered — would answer "File is no
+ * one. The one without this file registered, would answer "File is no
  * longer open" and kill playback in the tab that actually has it. Whichever
  * client holds the file replies; the rest are ignored.
  */
@@ -115,7 +115,7 @@ function parseRange(header, size) {
 
 async function serve(event) {
   const url = new URL(event.request.url)
-  // Path is /_stream/<key>/<name>.<ext> — the trailing name exists because
+  // Path is /_stream/<key>/<name>.<ext>. The trailing name exists because
   // Safari cross-checks a media URL's extension against its Content-Type.
   const rest = decodeURIComponent(url.pathname.slice(PREFIX.length))
   const key = rest.split('/')[0]

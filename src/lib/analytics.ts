@@ -6,7 +6,7 @@
  *
  * So analytics exist only on the marketing pages, which hold nothing. The app
  * ships a Content Security Policy with no third-party origins at all, so even
- * a mistaken future import cannot load one — the browser refuses.
+ * a mistaken future import cannot load one. The browser refuses.
  *
  * Set VITE_GA_ID in .env to switch it on. With no id, nothing is requested.
  * ──────────────────────────────────────────────────────────────────────── */
@@ -31,7 +31,7 @@ export function initAnalytics(): void {
 
   window.dataLayer = window.dataLayer || []
   window.gtag = function gtag() {
-    // Must push `arguments` itself — gtag.js reads the Arguments object, and
+    // Must push `arguments` itself, gtag.js reads the Arguments object, and
     // spreading it into an array breaks the parameter parsing.
     // eslint-disable-next-line prefer-rest-params
     window.dataLayer!.push(arguments)

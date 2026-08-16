@@ -36,7 +36,7 @@
  * 1. Hierarchy comes from SIZE and WEIGHT. Not from all-caps, not from
  *    letter-spacing, not from switching to a mono face. Uppercase strips the
  *    ascenders and descenders that make word shapes recognisable, and the
- *    research puts the cost at roughly 12% more fixations per line — for
+ *    research puts the cost at roughly 12% more fixations per line, and that is for
  *    labels that were only ever there to be glanced at.
  * 2. Body text is 17px, the size Apple ships as default body, and controls
  *    are never smaller than a 44px target. Nothing on this site should
@@ -67,12 +67,12 @@
      Every step interpolates with the viewport instead of stepping at a
      breakpoint. Fixed sizes force a compromise: a body size chosen for a
      1440px desktop is oversized on a 375px phone, and one chosen for the phone
-     is undersized everywhere else — so the text is only correct at two widths
+     is undersized everywhere else, so the text is only correct at two widths
      and merely tolerable between them.
    
      Read each clamp as: never below X (the phone), scales through the middle,
      never above Y (large desktops). The floor is a real minimum, not an
-     aspiration — nothing on this site renders below 15px at any width.
+     aspiration. Nothing on this site renders below 15px at any width.
      ──────────────────────────────────────────────────────────────────── */
   --text-tiny: clamp(0.875rem, 0.83rem + 0.19vw, 0.9375rem);   /* 14 → 15 */
   --text-small: clamp(0.9375rem, 0.88rem + 0.28vw, 1.0625rem); /* 15 → 17 */
@@ -111,7 +111,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Headings get tighter leading as they get larger — large type at 1.65
+  /* Headings get tighter leading as they get larger. Large type at 1.65
      leading falls apart into loose stripes. */
   h1,
   h2,
@@ -158,7 +158,7 @@
 }
 
 /* Section label. Sentence case, sized like real text, distinguished by weight
-   and colour — the job the all-caps micro-label was doing badly. */
+   and colour, which is the job the all-caps micro-label was doing badly. */
 @utility eyebrow {
   font-size: var(--text-small);
   font-weight: 500;
@@ -222,4 +222,141 @@
   line-height: 1.08;
   letter-spacing: -0.03em;
   font-weight: 600;
+}
+
+
+/* ── video player ─────────────────────────────────────────────────────────
+ * Media Chrome ships behaviour and no opinion about looks, so the entire
+ * appearance lives here.
+ *
+ * The reference is the way Apple's players behave rather than the way they
+ * look: controls that float over the picture on a soft scrim instead of a
+ * solid bar stealing height, generous round hit areas, a scrubber that grows
+ * under the cursor, and chrome that gets out of the way the moment playback
+ * settles. Nothing here is decoration for its own sake.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+.axiom-player {
+  --media-font-family: var(--font-sans);
+  background: #000;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* The bar floats on a gradient scrim: a solid strip would crop the picture,
+   and plain white-on-video is unreadable over a bright frame. */
+.axiom-player .axiom-bar {
+  --media-control-height: 2.75rem;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2.5rem 0.875rem 0.875rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.34) 52%, transparent 100%);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Hidden while playing and idle, back instantly on any intent. */
+.axiom-player[mediapaused] .axiom-bar,
+.axiom-player:hover .axiom-bar,
+.axiom-player:focus-within .axiom-bar,
+.axiom-player[mediapreviewtime] .axiom-bar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.axiom-player[userinactive]:not([mediapaused]) .axiom-bar {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+
+.axiom-player media-play-button,
+.axiom-player media-mute-button,
+.axiom-player media-pip-button,
+.axiom-player media-fullscreen-button,
+.axiom-player media-seek-backward-button,
+.axiom-player media-seek-forward-button,
+.axiom-player media-playback-rate-button {
+  border-radius: 9999px;
+  padding: 0.5rem;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.axiom-player media-play-button:hover,
+.axiom-player media-mute-button:hover,
+.axiom-player media-pip-button:hover,
+.axiom-player media-fullscreen-button:hover,
+.axiom-player media-seek-backward-button:hover,
+.axiom-player media-seek-forward-button:hover,
+.axiom-player media-playback-rate-button:hover {
+  transform: scale(1.06);
+}
+
+.axiom-player media-play-button:active {
+  transform: scale(0.94);
+}
+
+.axiom-player media-time-range {
+  flex: 1;
+  min-width: 4rem;
+  margin-inline: 0.5rem;
+  --media-range-track-height: 5px;
+  --media-range-thumb-opacity: 0;
+  transition: --media-range-track-height 0.15s ease;
+}
+
+/* The scrubber thickens and shows its handle on approach, because a 5px target is
+   fine to look at and miserable to grab. */
+.axiom-player media-time-range:hover,
+.axiom-player media-time-range:focus-within {
+  --media-range-track-height: 8px;
+  --media-range-thumb-opacity: 1;
+}
+
+.axiom-player media-time-display,
+.axiom-player media-duration-display {
+  font-size: var(--text-tiny);
+  font-variant-numeric: tabular-nums;
+  padding-inline: 0.5rem;
+  opacity: 0.92;
+}
+
+/* Volume expands from nothing rather than permanently occupying the bar. */
+.axiom-player media-volume-range {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+.axiom-player media-mute-button:hover + media-volume-range,
+.axiom-player media-volume-range:hover,
+.axiom-player media-volume-range:focus-within {
+  width: 4.5rem;
+  opacity: 1;
+}
+
+.axiom-player media-playback-rate-button {
+  font-size: var(--text-tiny);
+  font-variant-numeric: tabular-nums;
+  min-width: 3rem;
+}
+
+.axiom-player media-loading-indicator {
+  --media-loading-indicator-icon-color: #fff;
+}
+
+/* Narrow screens drop the parts a thumb cannot use well anyway. */
+@media (max-width: 40rem) {
+  .axiom-player media-volume-range,
+  .axiom-player media-playback-rate-button,
+  .axiom-player media-pip-button,
+  .axiom-player media-duration-display {
+    display: none;
+  }
+  .axiom-player .axiom-bar {
+    padding: 2rem 0.5rem 0.625rem;
+  }
 }

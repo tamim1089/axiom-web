@@ -29,7 +29,7 @@ const PRINCIPLES = [
 
 const LIMITS = [
   ['Largest single file', '2 GB, which is Telegram’s ceiling rather than ours'],
-  ['Total storage', 'Whatever your Telegram account allows — we do not claim unlimited'],
+  ['Total storage', 'Whatever your Telegram account allows. We do not claim unlimited'],
   ['While transferring', 'Keep the tab open; closing it stops the transfer'],
   ['On iPhone', 'Safari can forget the login after about a week away, so you rescan'],
 ]
@@ -74,7 +74,7 @@ export function Landing() {
                 Your control.
               </h1>
               <p className="measure mt-8 text-[clamp(1.125rem,2vw,1.375rem)] leading-relaxed text-graphite">
-                Keep every photo, video and document in your own Telegram account — opened from any
+                Keep every photo, video and document in your own Telegram account, opened from any
                 browser, with nothing in between. Not even us.
               </p>
 
@@ -84,7 +84,7 @@ export function Landing() {
                   href="/app"
                   className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-ink px-8 text-lead font-medium text-paper transition-opacity hover:opacity-90 sm:w-auto"
                 >
-                  Open Axiom — it's free
+                  Open Axiom. It's free
                   <ArrowRight className="size-5" strokeWidth={2} />
                 </a>
                 <a
@@ -114,7 +114,7 @@ export function Landing() {
         <section className="border-y border-line bg-mist/50">
           <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:grid-cols-3 sm:px-8">
             <Promise icon={Clock} title={`We reply ${SITE.responseTime}`}>
-              Email us and a person answers — no ticket queue.
+              Email us and a person answers. No ticket queue.
             </Promise>
             <Promise icon={Lock} title="Nothing to trust us with">
               We hold no files and no login keys, by design.
@@ -136,7 +136,7 @@ export function Landing() {
             </Reveal>
             <p className="measure mt-6 text-lead leading-relaxed text-graphite">
               That middle is where files get scanned, accounts get locked, and subscriptions get
-              charged. Axiom's middle is empty — not as a policy we could quietly change, but
+              charged. Axiom's middle is empty, not as a policy we could quietly change, but
               because there is nothing there to run one.{' '}
               <a
                 href="#security"
@@ -175,74 +175,11 @@ export function Landing() {
               Scattered across devices. Gathered into one place.
             </h2></Reveal>
             <p className="measure mt-6 text-lead leading-relaxed text-graphite">
-              Folders, search, previews and streaming video — the ordinary things a file manager
+              Folders, search, previews and streaming video. The ordinary things a file manager
               owes you, with none of the storage machinery showing through.
             </p>
           </div>
           <ScrollChoreography images={PHOTOS} className="mt-16" />
-        </section>
-
-        {/* ── case study ────────────────────────────────────────────────── */}
-        <section id="story" className="screenful scroll-mt-24 border-t border-line py-28 sm:py-40">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <Reveal><p className="eyebrow">Case study</p>
-            <h2 className="mt-5 max-w-3xl display">
-              What 41,000 lines of a desktop app taught us.
-            </h2></Reveal>
-
-            <div className="mt-12 grid gap-12 lg:grid-cols-[1.35fr_1fr]">
-              <div className="space-y-6 text-body leading-relaxed text-graphite">
-                <p>
-                  Axiom did not start as a website. It started as{' '}
-                  <a
-                    href={`${SITE.github}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-signal underline decoration-signal/30 underline-offset-4 hover:decoration-signal"
-                  >
-                    Telegram Drive
-                  </a>
-                  , a desktop file manager built in Rust and TypeScript over seven months and 187
-                  releases, shipping on Windows, macOS, Linux and Android.
-                </p>
-                <p>
-                  It worked — but every new user had to download an installer, then go and register
-                  their own API credentials before they could see a single file. The hardest problem
-                  was never the storage. It was the distance between wanting your files and having
-                  them.
-                </p>
-                <p>
-                  So the obvious next step looked like a normal web app: a server that holds your
-                  Telegram session and serves your files. We designed it, then threw it away. That
-                  server would have had to relay every byte of every transfer, and it would have sat
-                  on thousands of Telegram session keys — where a single breach is not a password
-                  reset, it is thousands of hijacked accounts.
-                </p>
-                <p className="text-ink">
-                  Running the client in the browser removed both problems at once. No installer, no
-                  credentials to register, no server to breach — and the bandwidth bill that would
-                  have forced a subscription simply never appears.
-                </p>
-              </div>
-
-              <div className="rounded-3xl border border-line bg-mist/50 p-8">
-                <h3 className="text-[1.625rem] font-semibold tracking-[-0.02em]">By the numbers</h3>
-                <dl className="mt-6 space-y-6">
-                  {[
-                    ['7 months', 'From first commit to shipping on four platforms'],
-                    ['41,000 lines', 'Rust and TypeScript behind the desktop app'],
-                    ['187 releases', 'Shipped to real users, publicly'],
-                    ['0 servers', 'What the browser version needs to run'],
-                  ].map(([stat, label]) => (
-                    <div key={stat}>
-                      <dt className="text-[2.25rem] font-semibold tracking-[-0.03em]">{stat}</dt>
-                      <dd className="mt-1 text-small leading-relaxed text-titanium">{label}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* ── security ──────────────────────────────────────────────────── */}
@@ -255,8 +192,8 @@ export function Landing() {
             <div className="measure mt-6 space-y-5 text-lead leading-relaxed text-graphite">
               <p>
                 Because Axiom runs entirely in your browser, your login key is stored there too. That
-                removes the biggest risk in this kind of product — a company database full of other
-                people's account keys — and replaces it with a smaller one: any malicious script
+                removes the biggest risk in this kind of product. A company database full of other
+                people's account keys. And replaces it with a smaller one: any malicious script
                 loaded on this site could read your key.
               </p>
               <p>
@@ -370,7 +307,7 @@ export function Landing() {
                 <h2 className="mt-5 display">Talk to a person.</h2></Reveal>
                 <p className="measure mt-6 text-lead leading-relaxed text-graphite">
                   Questions about how it works, something broken, or an idea for what it should do
-                  next — write to us and we reply {SITE.responseTime}.
+                  next, write to us and we reply {SITE.responseTime}.
                 </p>
 
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row">

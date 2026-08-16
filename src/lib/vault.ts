@@ -3,14 +3,14 @@ import { getClient } from './telegram'
 /* ── the vault ────────────────────────────────────────────────────────────
  * Files live in a private channel of the user's own, not in Saved Messages.
  *
- * Saved Messages is a place people already use — notes, forwarded links,
+ * Saved Messages is a place people already use, notes, forwarded links,
  * things they mailed themselves. Writing a file manager on top of it means
  * every unrelated message shows up in the library, and every delete is one
  * misclick away from destroying something the app did not create. A dedicated
  * channel gives the app a namespace of its own: everything in it belongs to
  * Axiom, so listing is exact and deleting is safe.
  *
- * The channel is private — no username, no invite link is published — and it
+ * The channel is private, no username, no invite link is published. And it
  * belongs to the user's account, not to us. Uninstall Axiom and it is still
  * there in their Telegram client, with every file in it.
  *
@@ -21,7 +21,7 @@ import { getClient } from './telegram'
 
 export const VAULT_TITLE = 'Axiom Storage'
 const VAULT_ABOUT =
-  'Private file storage for Axiom. Created automatically — files you upload to Axiom are kept here.'
+  'Private file storage for Axiom. Created automatically, files you upload to Axiom are kept here.'
 const CACHE_KEY = 'axiom.vault.id'
 
 let resolving: Promise<number> | null = null

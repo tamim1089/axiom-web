@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Archive, FileText, FileType, Film, Image as ImageIcon, Music, File } from 'lucide-react'
+import { Archive, Code2, FileText, FileType, Film, Image as ImageIcon, Music, File } from 'lucide-react'
 import { getClient } from '@/lib/telegram'
 import { ext, type FileKind } from '@/lib/format'
 import { primary, type AxiomFile } from '@/lib/storage'
@@ -12,6 +12,7 @@ const GLYPH: Record<FileKind, typeof File> = {
   pdf: FileType,
   archive: Archive,
   doc: FileText,
+  code: Code2,
   other: File,
 }
 
@@ -117,7 +118,7 @@ export function Thumb({
 /* A tile with nothing but a small icon floating in grey is mostly dead pixels,
    and a grid of them reads as a loading state rather than as files. So the
    non-visual kinds get a drawn stand-in that says what the thing is at a
-   glance — the same page motif the landing corridor uses, kept to hairlines
+   glance. The same page motif the landing corridor uses, kept to hairlines
    and titanium so a wall of them stays calm. */
 function Placeholder({ file }: { file: AxiomFile }) {
   const label = ext(file.name)
@@ -129,7 +130,7 @@ function Placeholder({ file }: { file: AxiomFile }) {
           <div
             key={i}
             className="h-[2px] rounded-full bg-line"
-            // Ragged right edge — four equal bars read as a placeholder.
+            // Ragged right edge, four equal bars read as a placeholder.
             style={{ width: `${[86, 72, 90, 54][i]}%` }}
           />
         ))}

@@ -11,7 +11,7 @@
  * session key.
  *
  * Sizing note: the corridor draws exactly `cards` images (see ImageStreamHero
- * — it walks `images[i % length]` for i < cards), so any photo past that index
+ *. It walks `images[i % length]` for i < cards), so any photo past that index
  * is downloaded by nobody. The list length and the card count are kept equal
  * on purpose. These are 800×1100, matching the 18:25 card ratio and their real
  * on-screen size; the four `wide-*` files are 1600px because the scroll
@@ -44,12 +44,12 @@ export const CORRIDOR: Photo[] = [
   p('surf-family', 'A family carrying surfboards along the beach'),
 ]
 
-/** Kept equal to CORRIDOR.length so every photo is actually used — and capped
+/** Kept equal to CORRIDOR.length so every photo is actually used. And capped
     around sixteen, because past that the cards overlap so tightly that each one
     reads as a sliver rather than a photograph. */
 export const CORRIDOR_CARDS = CORRIDOR.length
 
-/** The four the scroll sequence converges on — wide, and high enough resolution
+/** The four the scroll sequence converges on, wide, and high enough resolution
     to survive expanding to the full viewport. */
 export const PHOTOS = {
   topLeft: '/photos/wide-mountains.webp',

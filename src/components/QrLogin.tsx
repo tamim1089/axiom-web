@@ -44,7 +44,7 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
 
   const seconds = useSecondsLeft(state.kind === 'qr' ? state.expires : undefined)
 
-  /* Resume an existing session before offering a new login — a returning user
+  /* Resume an existing session before offering a new login. A returning user
      should never be asked to scan again just because they reloaded the tab. */
   useEffect(() => {
     let cancelled = false
@@ -171,8 +171,8 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
           <>
             <h1 className="mt-8 text-[clamp(2rem,4vw,2.75rem)]">Two-step verification</h1>
             <p className="mt-4 text-lead leading-relaxed text-graphite">
-              Your account has a password. Enter it to finish — it's checked by Telegram
-              over SRP and never sent anywhere else.
+              Your account has a password. Enter it to finish. Telegram checks it over SRP
+              and it is never sent anywhere else.
             </p>
             <form onSubmit={submitPassword} className="mt-8 w-full">
               <input
@@ -197,7 +197,7 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
             <h1 className="mt-8 text-[clamp(2rem,4vw,2.75rem)]">Open Axiom</h1>
             <p className="mt-4 max-w-md text-lead leading-relaxed text-graphite">
               Scan with the Telegram app on your phone. This links your storage to this
-              browser — no password, no account to create.
+              browser, no password, no account to create.
             </p>
 
             {/* The QR plate keeps a fixed footprint across every state, so the
@@ -220,7 +220,7 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
                   </span>
                 </div>
               ) : (
-                /* Resting. No spinner here — nothing is happening yet, and a
+                /* Resting. No spinner here. Nothing is happening yet, and a
                    spinner next to a button that says "Show QR code" claims
                    otherwise. */
                 <QrCode className="size-14 text-line" strokeWidth={1.25} />
@@ -231,7 +231,7 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
               <p className="mt-5 text-small text-titanium">Code refreshes in {seconds}s</p>
             )}
 
-            {/* Only failure needs a button now — the code fetches itself. */}
+            {/* Only failure needs a button now. The code fetches itself. */}
             {state.kind === 'error' && (
               <button
                 onClick={signIn}

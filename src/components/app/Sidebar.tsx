@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import {
   Archive,
+  Code2,
   FileText,
   Files,
   Film,
@@ -20,6 +21,7 @@ const ICONS: Record<Collection, typeof Files> = {
   video: Film,
   audio: Music,
   doc: FileText,
+  code: Code2,
   pdf: FileType,
   archive: Archive,
   other: Files,

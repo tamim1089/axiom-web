@@ -26,7 +26,7 @@ function Page({
 
 /* ── thank you ────────────────────────────────────────────────────────────
  * Reached after someone gets in touch. Its job is to confirm what happened,
- * say when they will hear back, and offer somewhere to go next — a dead-end
+ * say when they will hear back, and offer somewhere to go next. A dead-end
  * "thanks!" screen wastes the one moment someone is definitely paying
  * attention.
  * ──────────────────────────────────────────────────────────────────────── */
@@ -36,7 +36,7 @@ export function ThankYouPage() {
       <div className="mt-10 flex size-16 items-center justify-center rounded-2xl bg-signal-soft">
         <Check className="size-8 text-signal" strokeWidth={2} />
       </div>
-      <h1 className="mt-8 display">Thanks — that reached us.</h1>
+      <h1 className="mt-8 display">Thanks. That reached us.</h1>
       <p className="mt-6 text-lead leading-relaxed text-graphite">
         We read everything that comes in, and you will hear back from a person {SITE.responseTime}.
         If it is urgent, replying to our email lands straight in the same place.
@@ -106,7 +106,7 @@ export function NotFoundPage() {
       <h1 className="mt-4 display">That page isn't here.</h1>
       <p className="mt-6 text-lead leading-relaxed text-graphite">
         The link may be out of date, or the address may have a typo in it. Nothing is wrong with your
-        files — they live in your Telegram account, not on this website.
+        files. They live in your Telegram account, not on this website.
       </p>
 
       <div className="mt-12 grid gap-4 sm:grid-cols-2">
@@ -166,7 +166,7 @@ export function PrivacyPage() {
 
         <Clause title="Website analytics">
           <p>
-            If analytics are enabled, they run on the marketing pages only — never on the app. The
+            If analytics are enabled, they run on the marketing pages only, never on the app. The
             app page loads no third-party scripts whatsoever, and the browser enforces that through
             a Content Security Policy rather than relying on our good intentions. Analytics, where
             used, measure page visits in aggregate and are never joined to anything in your Telegram
@@ -186,7 +186,7 @@ export function PrivacyPage() {
           <p>
             Deleting a file in Axiom deletes the underlying message in your Telegram channel.
             Deleting that channel in any Telegram app removes everything at once. Because we hold no
-            copy, there is no separate deletion request to make of us — and no export to request,
+            copy, there is no separate deletion request to make of us. And no export to request,
             since the files are already in an account you control.
           </p>
         </Clause>

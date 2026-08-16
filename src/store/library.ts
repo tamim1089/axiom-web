@@ -5,7 +5,7 @@ import type { FileKind } from '@/lib/format'
 /* ── the library ──────────────────────────────────────────────────────────
  * Collections are derived from what a file *is*, not from folders the user
  * has to build first. A new account has working navigation on day one, and
- * nothing here needs storage of its own — which matters when there is no
+ * nothing here needs storage of its own. Which matters when there is no
  * server to keep it in. Real folders arrive later as an overlay on top.
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -20,6 +20,7 @@ export const COLLECTIONS: { key: Collection; label: string }[] = [
   { key: 'video', label: 'Video' },
   { key: 'audio', label: 'Audio' },
   { key: 'doc', label: 'Documents' },
+  { key: 'code', label: 'Code' },
   { key: 'pdf', label: 'PDFs' },
   { key: 'archive', label: 'Archives' },
 ]
@@ -130,7 +131,7 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
       return
     }
 
-    // Range: from the anchor to here, over what is actually on screen — so a
+    // Range: from the anchor to here, over what is actually on screen. So a
     // shift-click follows the current sort rather than some hidden order.
     const from = visible.findIndex((f) => f.id === (anchor ?? id))
     const to = visible.findIndex((f) => f.id === id)

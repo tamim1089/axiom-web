@@ -1,22 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { ChevronLeft, ChevronRight, Download, Loader2, X } from 'lucide-react'
-import { objectUrl, type AxiomFile } from '@/lib/storage'
+import { objectUrl, readRange, type AxiomFile } from '@/lib/storage'
 import { ensureStreaming, releaseStream, streamUrl } from '@/lib/stream'
+import { isTextFile } from '@/lib/code-languages'
 import { useTransfers } from '@/store/transfers'
 import { bytes, when } from '@/lib/format'
 
-/* Video and audio stream through the Service Worker, so a 2 GB file opens
-   instantly and seeks anywhere without downloading itself first. Images and
-   PDFs have no range protocol to exploit — the viewer needs the whole object —
-   so those still fetch fully, and are capped. */
-const BUFFERED = new Set(['image', 'pdf'])
+/* Video and audio stream through the Service Worker, so a large file opens at
+   once and seeks anywhere without downloading itself first. Images, PDFs and
+   source files have no range protocol to exploit, so those fetch in full and
+   carry a size ceiling. */
 const STREAMED = new Set(['video', 'audio'])
+const BUFFERED = new Set(['image', 'pdf'])
 const BUFFER_CEILING = 96 * 1024 * 1024
+/** Source files are decoded into memory, so this stays modest. */
+const TEXT_CEILING = 8 * 1024 * 1024
 
-type Source = { url: string; streamed: boolean }
+const CodeViewer = lazy(() => import('./CodeViewer'))
+const VideoPlayer = lazy(() => import('./VideoPlayer'))
+
+type Source = { kind: 'url'; url: string } | { kind: 'text'; text: string }
 
 export function Preview({
   file,
@@ -32,8 +38,9 @@ export function Preview({
   const enqueueDownload = useTransfers((s) => s.enqueueDownload)
 
   const streamable = STREAMED.has(file.kind)
+  const textual = !streamable && isTextFile(file.name, file.mime) && file.size <= TEXT_CEILING
   const bufferable = BUFFERED.has(file.kind) && file.size <= BUFFER_CEILING
-  const viewable = streamable || bufferable
+  const viewable = streamable || bufferable || textual
 
   useEffect(() => {
     if (!viewable) return
@@ -48,16 +55,21 @@ export function Preview({
           await ensureStreaming()
           const url = streamUrl(file)
           if (url) {
-            if (!ac.signal.aborted) setSource({ url, streamed: true })
+            if (!ac.signal.aborted) setSource({ kind: 'url', url })
             return
           }
-          // No worker (private mode, unsupported browser). Buffering a large
-          // video would hang the tab, so say so instead of trying.
           if (file.size > BUFFER_CEILING) {
             throw new Error(
-              'Streaming is unavailable in this browser, and this file is too large to load in one piece. Download it to watch.',
+              'Streaming is unavailable in this browser and this file is too large to load in one piece. Download it to watch.',
             )
           }
+        }
+
+        if (textual) {
+          const raw = await readRange(file, 0, file.size, ac.signal)
+          if (ac.signal.aborted) return
+          setSource({ kind: 'text', text: new TextDecoder().decode(raw) })
+          return
         }
 
         const url = await objectUrl(file, ac.signal)
@@ -66,7 +78,7 @@ export function Preview({
           return
         }
         created = url
-        setSource({ url, streamed: false })
+        setSource({ kind: 'url', url })
       } catch (err) {
         if (!ac.signal.aborted) setError(err instanceof Error ? err.message : String(err))
       }
@@ -77,17 +89,22 @@ export function Preview({
       if (created) URL.revokeObjectURL(created)
       releaseStream(file)
     }
-  }, [file, viewable, streamable])
+  }, [file, viewable, streamable, textual])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
+      // Arrow keys belong to the player while it has focus, so stepping between
+      // files must not steal them mid-scrub.
+      if ((e.target as HTMLElement | null)?.closest?.('media-controller')) return
       if (e.key === 'ArrowRight') onStep(1)
       if (e.key === 'ArrowLeft') onStep(-1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, onStep])
+
+  const spinner = <Loader2 className="size-7 animate-spin text-paper/40" />
 
   return (
     <motion.div
@@ -123,7 +140,7 @@ export function Preview({
         </button>
       </header>
 
-      <div className="relative flex min-h-0 flex-1 items-center justify-center p-4 sm:p-10">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-4 sm:p-8">
         <StepButton side="left" onClick={() => onStep(-1)} />
 
         {!viewable ? (
@@ -131,34 +148,32 @@ export function Preview({
             <p className="text-lead">No preview for this kind of file</p>
             <p className="mt-3 text-small text-paper/50">
               {file.size > BUFFER_CEILING
-                ? 'Too large to open in the browser — download it instead'
+                ? 'Too large to open in the browser, so download it instead'
                 : file.mime}
             </p>
           </div>
         ) : error ? (
           <p className="measure text-center text-small leading-relaxed text-paper/70">{error}</p>
         ) : !source ? (
-          <Loader2 className="size-7 animate-spin text-paper/40" />
+          spinner
+        ) : source.kind === 'text' ? (
+          <Suspense fallback={spinner}>
+            <div className="h-full w-full max-w-6xl">
+              <CodeViewer name={file.name} text={source.text} />
+            </div>
+          </Suspense>
+        ) : file.kind === 'video' ? (
+          <Suspense fallback={spinner}>
+            <div className="flex h-full w-full max-w-6xl items-center">
+              <VideoPlayer file={file} src={source.url} onError={setError} />
+            </div>
+          </Suspense>
         ) : file.kind === 'image' ? (
           <img
             src={source.url}
             alt={file.name}
             decoding="async"
             className="max-h-full max-w-full object-contain"
-          />
-        ) : file.kind === 'video' ? (
-          <video
-            src={source.url}
-            controls
-            autoPlay
-            playsInline
-            preload="metadata"
-            className="max-h-full max-w-full"
-            onError={() =>
-              setError(
-                `This browser can't play ${file.mime || 'this format'}. The file itself is fine — download it and it will open in any player.`,
-              )
-            }
           />
         ) : file.kind === 'audio' ? (
           <audio src={source.url} controls autoPlay className="w-full max-w-lg" />
@@ -178,9 +193,11 @@ function StepButton({ side, onClick }: { side: 'left' | 'right'; onClick: () => 
     <button
       onClick={onClick}
       aria-label={side === 'left' ? 'Previous file' : 'Next file'}
-      className={`absolute ${side === 'left' ? 'left-3' : 'right-3'} top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-paper/12 text-paper transition-colors hover:bg-paper/22 sm:flex`}
+      className={`absolute ${side === 'left' ? 'left-3' : 'right-3'} top-1/2 z-10 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-paper/12 text-paper transition-colors hover:bg-paper/22 sm:flex`}
     >
       <Icon className="size-6" />
     </button>
   )
 }
+
+export default Preview

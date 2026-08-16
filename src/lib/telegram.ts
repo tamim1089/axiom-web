@@ -19,7 +19,7 @@ const apiHash = import.meta.env.VITE_TELEGRAM_API_HASH as string
 
 if (!apiId || !apiHash) {
   throw new Error(
-    'Missing VITE_TELEGRAM_API_ID / VITE_TELEGRAM_API_HASH — copy .env.example to .env and fill them in from my.telegram.org',
+    'Missing VITE_TELEGRAM_API_ID / VITE_TELEGRAM_API_HASH, copy .env.example to .env and fill them in from my.telegram.org',
   )
 }
 
@@ -41,7 +41,7 @@ export function getClient(): TelegramClient {
  * Ask the browser to keep our storage.
  *
  * WebKit's tracking prevention clears IndexedDB and Service Worker
- * registrations after roughly seven days of Safari use without a visit — which
+ * registrations after roughly seven days of Safari use without a visit. Which
  * here means the Telegram auth key and the streaming worker, gone, with the
  * user's only symptom being "it logged me out again". Persisted storage is
  * exempt.

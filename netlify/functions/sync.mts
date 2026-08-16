@@ -8,7 +8,7 @@ import type { Config, Context } from '@netlify/functions'
  *
  * 1. It keeps the Supabase origin out of the app page's Content-Security-
  *    Policy. The page holding a Telegram auth key may talk to 'self' and
- *    Telegram, and to nothing else — including us, from its own origin.
+ *    Telegram, and to nothing else, including us, from its own origin.
  * 2. It rate-limits writes. A public, key-addressed store with no ceiling is
  *    free hosting for whoever finds it.
  * 3. It keeps the service-role credential server-side, so row access is
@@ -84,7 +84,7 @@ export default async function handler(req: Request, ctx: Context): Promise<Respo
 
   if (req.method === 'PUT') {
     const ip = ctx.ip || req.headers.get('x-nf-client-connection-ip') || 'unknown'
-    // No Date.now() ambiguity here — this runs per request, server-side.
+    // No Date.now() ambiguity here. This runs per request, server-side.
     if (rateLimited(ip, Date.now())) return json({ error: 'Slow down' }, 429)
 
     let body: { id?: string; payload?: string; clock?: number }

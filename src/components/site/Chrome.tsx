@@ -104,7 +104,7 @@ export function StickyCta() {
         tabIndex={show ? 0 : -1}
         className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-ink text-lead font-medium text-paper"
       >
-        Open Axiom — it's free
+        Open Axiom. It's free
         <ArrowRight className="size-5" strokeWidth={2} />
       </a>
     </div>
@@ -156,7 +156,7 @@ export function Breadcrumbs({ trail }: { trail: { href?: string; label: string }
 }
 
 /* ── footer ───────────────────────────────────────────────────────────────
- * Carries the internal links that would otherwise be orphaned — every page
+ * Carries the internal links that would otherwise be orphaned. Every page
  * reachable from every page, which is what stops a crawler treating /privacy
  * and /thank-you as dead ends.
  * ──────────────────────────────────────────────────────────────────────── */
@@ -199,7 +199,6 @@ export function SiteFooter() {
             title="Product"
             links={[
               { href: '/#how', label: 'How it works' },
-              { href: '/#story', label: 'Case study' },
               { href: '/#limits', label: 'Limits' },
               { href: '/app', label: 'Open Axiom' },
             ]}

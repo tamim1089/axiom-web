@@ -1,6 +1,6 @@
 /* ── multipart files ──────────────────────────────────────────────────────
  * Telegram refuses a single object above 2 GB (4 GB for Premium). A 6 GB video
- * is not an exotic case — one phone shooting 4K produces them — so Axiom
+ * is not an exotic case. One phone shooting 4K produces them. So Axiom
  * splits oversized files across several messages and presents the set as one
  * file everywhere above this layer.
  *
@@ -16,7 +16,7 @@
  * 2. **Part size is 4 KiB-aligned.** Telegram only accepts download offsets on
  *    a 4096 boundary. If every part begins at a multiple of 4096, then a
  *    4096-aligned offset in the logical file is still 4096-aligned inside
- *    whichever part it lands in — the alignment survives the mapping instead
+ *    whichever part it lands in. The alignment survives the mapping instead
  *    of needing to be recomputed and re-trimmed per part.
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -26,7 +26,7 @@ export const PART_MAX = 1_879_048_192
 /* The entire alignment guarantee rests on this. If a future edit picks a
    friendlier-looking number like 1.9 GB, offsets inside later parts stop
    landing on 4 KiB boundaries, Telegram rejects them, and seeking breaks only
-   for files big enough to have a second part — the hardest case to notice.
+   for files big enough to have a second part. The hardest case to notice.
    Fail at import instead. */
 if (PART_MAX % 1_048_576 !== 0) {
   throw new Error(`PART_MAX must be a whole number of MiB; got ${PART_MAX}`)
@@ -38,7 +38,7 @@ const TAG = '⟦axiom⟧'
 export type PartManifest = {
   /** Format version, so a future change can be migrated rather than guessed. */
   v: 1
-  /** Group id — shared by every part of one logical file. */
+  /** Group id, shared by every part of one logical file. */
   g: string
   /** File name. */
   n: string
@@ -113,7 +113,7 @@ export type PartSlice = {
  *
  * A window that straddles a boundary yields several slices, in order; the
  * caller concatenates them. Without this, seeking to a point near a part
- * boundary would silently return the wrong bytes — the failure mode is a video
+ * boundary would silently return the wrong bytes. The failure mode is a video
  * that plays fine until roughly the 1.75 GB mark and then corrupts.
  */
 export function sliceRange(parts: PartRef[], offset: number, length: number): PartSlice[] {

@@ -16,11 +16,11 @@ import {
  * AxiomFile and knows nothing about messages, documents, or data centres.
  *
  * Files live in a private channel of the user's own (see vault.ts), and that
- * channel's history is the source of truth — not a separate index. A manifest
+ * channel's history is the source of truth, not a separate index. A manifest
  * we maintain can drift, get corrupted, or disagree with reality after an
  * upload fails halfway; the messages cannot. So the list is derived by
  * scanning, and anything we add later (folders, tags) is an overlay keyed by
- * message id — losing the overlay loses organisation, never files.
+ * message id, losing the overlay loses organisation, never files.
  *
  * Files above Telegram's per-object cap are split across several messages and
  * reassembled here (see multipart.ts). Nothing above this layer knows.
@@ -30,7 +30,7 @@ export type AxiomFile = {
   /** Group id for split files, message id otherwise. Stable for the file's life. */
   id: string
   name: string
-  /** Logical size — the size of the file the user gave us, not of any one part. */
+  /** Logical size. The size of the file the user gave us, not of any one part. */
   size: number
   mime: string
   date: Date
@@ -68,7 +68,7 @@ type RawMessage = { id: number; date: Date; media?: unknown; text?: string; capt
  * the only part most people ever look at.
  *
  * Split files are held back until every part has been seen, then emitted once
- * as a single entry — a half-scanned 6 GB video must never appear as three
+ * as a single entry. A half-scanned 6 GB video must never appear as three
  * confusing 1.75 GB fragments.
  */
 export async function scanFiles(
@@ -114,7 +114,7 @@ export async function scanFiles(
         messageId: msg.id,
         media,
       })
-      // Oldest part's date is the file's date — that is when the upload began.
+      // Oldest part's date is the file's date. That is when the upload began.
       if (msg.date < group.date) group.date = msg.date
       pending.set(manifest.g, group)
 
@@ -164,7 +164,7 @@ function assemble(
   complete = true,
 ): AxiomFile {
   const ordered = [...parts].sort((a, b) => a.index - b.index)
-  // Offsets come from the actual part sizes, in order — never from the planned
+  // Offsets come from the actual part sizes, in order, never from the planned
   // sizes, so a part that uploaded short is caught by the range mapper rather
   // than silently shifting every byte after it.
   let offset = 0
@@ -210,7 +210,7 @@ export async function uploadFile(
   for (const { index, start, end } of plan) {
     if (opts.signal?.aborted) throw new DOMException('Aborted', 'AbortError')
 
-    // A Blob slice is a view, not a copy — a 6 GB file is never held in memory.
+    // A Blob slice is a view, not a copy. A 6 GB file is never held in memory.
     const chunk = plan.length === 1 ? file : file.slice(start, end)
     const partName = plan.length === 1 ? file.name : `${file.name}.part${index + 1}`
 
@@ -275,24 +275,24 @@ export async function uploadFile(
 export async function deleteFiles(files: AxiomFile[]): Promise<void> {
   if (!files.length) return
   const vault = await getVaultId()
-  // Every part of every file — deleting only the first message of a split file
+  // Every part of every file, deleting only the first message of a split file
   // would leave the rest as orphaned storage the user can no longer see.
   const ids = files.flatMap((f) => f.parts.map((p) => p.messageId))
   await getClient().deleteMessagesById(vault, ids)
 }
 
 /* ── reading ──────────────────────────────────────────────────────────────
- * One entry point for bytes. Everything else — preview, download, the Service
- * Worker's range handler — goes through readRange, so multipart reassembly is
+ * One entry point for bytes. Everything else, preview, download, the Service
+ * Worker's range handler, goes through readRange, so multipart reassembly is
  * implemented exactly once.
  * ──────────────────────────────────────────────────────────────────────── */
 
 /* ── the byte window primitive ────────────────────────────────────────────
  * mtcute's `limit` parameter cannot be used. It is *validated* as a length
- * (must divide 1 MiB — see download-iterable.js:107-112) but *consumed* as an
+ * (must divide 1 MiB, see download-iterable.js:107-112) but *consumed* as an
  * absolute end offset (`let position = offset; while (position < limitBytes)`
  * at :233-235). So a 2 MiB window throws MtArgumentError, and any window whose
- * offset already exceeds the limit returns zero bytes — which is every seek
+ * offset already exceeds the limit returns zero bytes. Which is every seek
  * past the first megabyte.
  *
  * So we never pass `limit`. We open a stream at `offset`, take exactly the
@@ -331,7 +331,7 @@ async function readWindow(
         got += value.byteLength
       }
     } finally {
-      // Stop the transfer as soon as the window is satisfied — without this the
+      // Stop the transfer as soon as the window is satisfied. Without this the
       // rest of a multi-gigabyte file keeps downloading behind every seek.
       await reader.cancel().catch(() => {})
       ac.abort()
@@ -426,9 +426,9 @@ export function readStream(file: AxiomFile, signal?: AbortSignal): ReadableStrea
 /* ── download ─────────────────────────────────────────────────────────────
  * Two tiers, chosen by capability rather than by browser sniffing:
  *
- * 1. File System Access API — stream straight to a file the user picked. No
+ * 1. File System Access API, stream straight to a file the user picked. No
  *    ceiling, no memory pressure, real save dialog. Chromium only.
- * 2. Blob — Safari and Firefox have no save picker, and the honest consequence
+ * 2. Blob, Safari and Firefox have no save picker, and the honest consequence
  *    is a size ceiling, so this path is guarded rather than pretended away.
  * ──────────────────────────────────────────────────────────────────────── */
 

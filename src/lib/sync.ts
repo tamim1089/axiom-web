@@ -3,7 +3,7 @@ import { getVaultId } from './vault'
 
 /* ── metadata sync ────────────────────────────────────────────────────────
  * Folders, tags, favourites and view preferences, synced between a user's
- * devices — without giving anyone a way to read them.
+ * devices. Without giving anyone a way to read them.
  *
  * The trust boundary, stated precisely:
  *
@@ -18,15 +18,14 @@ import { getVaultId } from './vault'
  *
  * The key never travels through the server. It is generated on first use and
  * kept in a pinned message inside the user's own Axiom Storage channel, so a
- * second device gets it by virtue of being logged into Telegram at all —
- * there is no passphrase to remember and no key-exchange handshake to attack.
+ * second device gets it by virtue of being logged into Telegram at all, * there is no passphrase to remember and no key-exchange handshake to attack.
  * Possession of the key IS the authentication, and possession requires
  * Telegram access we never mediate.
  *
  * Requests go through our own Netlify function rather than to Supabase
  * directly. That is a security decision, not a routing one: it keeps the app
  * origin's connect-src at 'self', so the page that holds a Telegram auth key
- * is permitted to talk to exactly one host — ours — and nothing else.
+ * is permitted to talk to exactly one host, ours. And nothing else.
  * ──────────────────────────────────────────────────────────────────────── */
 
 const KEY_TAG = '⟦axiom-sync-key⟧'
@@ -58,7 +57,7 @@ let keyPromise: Promise<CryptoKey | null> | null = null
 
 async function importKey(raw: Uint8Array): Promise<CryptoKey> {
   // HKDF first, so the stored secret and the encryption key are not the same
-  // bytes — leaking one does not hand over the other.
+  // bytes, leaking one does not hand over the other.
   const base = await crypto.subtle.importKey('raw', raw as BufferSource, 'HKDF', false, [
     'deriveKey',
   ])
@@ -100,7 +99,7 @@ const fromB64 = (s: string) =>
 
 /**
  * Fetch the sync secret from the vault channel, creating it on first use.
- * Returns null when sync is unavailable — every caller treats that as "carry
+ * Returns null when sync is unavailable. Every caller treats that as "carry
  * on locally", never as an error worth showing.
  */
 async function secret(): Promise<Uint8Array | null> {

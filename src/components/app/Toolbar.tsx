@@ -58,7 +58,7 @@ export function Toolbar({
           <span className="text-[1.25rem] font-semibold tracking-[-0.03em]">Axiom</span>
         </a>
 
-        {/* Search is a peer of the title, not buried in a menu — with a flat
+        {/* Search is a peer of the title, not buried in a menu. With a flat
             file list it is the primary way to navigate past a few hundred. */}
         <div className="relative ml-auto w-full max-w-lg lg:ml-6">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-titanium" />

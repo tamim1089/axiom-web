@@ -7,7 +7,7 @@
  *
  * 1. It keeps the Supabase origin out of the app page's Content-Security-
  *    Policy. The page holding a Telegram auth key may talk to 'self' and
- *    Telegram, and to nothing else — including us, from its own origin.
+ *    Telegram, and to nothing else, including us, from its own origin.
  * 2. It rate-limits writes. A public, key-addressed store with no ceiling is
  *    free hosting for whoever finds it.
  * 3. It keeps the service-role credential server-side, so row access is

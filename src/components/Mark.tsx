@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 /* ── the mark ─────────────────────────────────────────────────────────────
  * Served as a 128px WebP (4.5 KB), not the 512px PNG (96 KB) used for the
  * favicon and share card. The header renders it at 40-48px, so the large file
- * was ~20x more bytes than any display could use — and while it was in flight
+ * was ~20x more bytes than any display could use. And while it was in flight
  * the browser showed an empty box where the logo should be.
  *
  * width/height are explicit for the same reason they are on every other image
@@ -35,7 +35,7 @@ export function Mark({
 
 /**
  * Mark plus wordmark. The lockup, used wherever the product needs to say who
- * it is — header, footer, and the moment in the scroll sequence where the
+ * it is, header, footer, and the moment in the scroll sequence where the
  * alternative to "every other cloud" turns out to be us.
  */
 export function Wordmark({

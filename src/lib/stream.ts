@@ -11,7 +11,7 @@ const registry = new Map<string, AxiomFile>()
 let ready: Promise<boolean> | null = null
 
 /* Attached at module load, not inside ensureStreaming(). The worker survives
-   reloads, so it can ask for a range before any preview has opened — and if
+   reloads, so it can ask for a range before any preview has opened. And if
    nobody is listening that request hangs until the worker's timeout rather
    than failing at once. Listening early costs nothing and turns a 45-second
    stall into an immediate, accurate error. */
@@ -74,7 +74,7 @@ async function onMessage(event: MessageEvent) {
     // stitched here and the worker never learns the file was ever split.
     const bytes = await readRange(file, msg.offset, msg.limit)
     // Copy into a standalone ArrayBuffer so it can be transferred rather than
-    // structured-cloned — this runs for every seek, on multi-MB windows.
+    // structured-cloned. This runs for every seek, on multi-MB windows.
     const copy = new Uint8Array(bytes.byteLength)
     copy.set(bytes)
     reply({ bytes: copy.buffer }, [copy.buffer])

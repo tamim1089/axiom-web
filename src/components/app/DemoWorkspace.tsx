@@ -40,7 +40,7 @@ function makeFiles(count: number): AxiomFile[] {
     const round = Math.floor(i / SEED.length)
     const name = round === 0 ? baseName : baseName.replace(/(\.[^.]+)$/, ` ${round + 1}$1`)
     // Every fourth file is split, so the harness exercises the multipart path
-    // — including the incomplete state, which is otherwise hard to reach.
+    //, including the incomplete state, which is otherwise hard to reach.
     const size = Math.round(rawSize * (0.6 + ((i * 37) % 80) / 100))
     const split = i % 9 === 4
     const partCount = split ? 3 : 1
@@ -49,7 +49,7 @@ function makeFiles(count: number): AxiomFile[] {
       id: `demo-${i}`,
       name,
       mime,
-      // Deterministic sizes and dates — a harness that reshuffles on every
+      // Deterministic sizes and dates. A harness that reshuffles on every
       // reload makes it impossible to tell a layout change from noise.
       size,
       date: new Date(Date.now() - i * 5.5 * 3_600_000),

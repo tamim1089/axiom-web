@@ -1,6 +1,6 @@
 /* ── motion tokens ────────────────────────────────────────────────────────
  * The shared vocabulary every animated component draws from. Durations and
- * easings are never written inline in a component — one place to tune means
+ * easings are never written inline in a component. One place to tune means
  * the whole site keeps a single sense of timing rather than drifting into
  * fifteen slightly different "0.4s ease-out"s.
  *

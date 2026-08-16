@@ -12,26 +12,25 @@ import { cn } from "@/lib/utils";
  *
  * Three things shape it, and each one fixes a specific artefact:
  *
- * 1. Depth is authored as *apparent size*, geometrically — each card
+ * 1. Depth is authored as *apparent size*, geometrically. Each card
  *    is a constant ratio bigger than the one behind it, all the way
  *    out. Spacing a straight z-range evenly instead makes the near
  *    cards tear apart from each other as the projection blows up.
  * 2. The rails open hard in the first stretch and then hold
- *    (`fan` > 1). That opening cancels the — still slow — growth back
+ *    (`fan` > 1). That opening cancels the, still slow, growth back
  *    there, so the ribbon leaves the centre as a flat band, bends
  *    once, and only then runs out on the diagonal. Parallel rails
  *    project to a straight cone with no bend at all.
  * 3. Neither end of the loop is ever on screen. A card dies with its
  *    inner edge past 50cqw, clear of the container's edge. And it is
- *    born *across* the axis — `railBirth` is negative, so the newest
+ *    born *across* the axis, `railBirth` is negative, so the newest
  *    card starts on the far side and sweeps back through the centre.
  *    That plugs the throat: the axis stays covered at every instant,
  *    and a newborn lands behind cards that already cover it, so it
  *    needs no fade in. Birthing on its own side instead leaves a hole
  *    at dead centre that blinks open once every cycle.
  *
- * Every length is in `cqw` — a percentage of the container's width —
- * so the whole corridor keeps its proportions at any size. The
+ * Every length is in `cqw`. A percentage of the container's width, * so the whole corridor keeps its proportions at any size. The
  * defaults were fitted numerically against a reference recording's
  * card-height and edge-position profile, not eyeballed.
  * ─────────────────────────────────────────────────────────────── */
@@ -60,7 +59,7 @@ export type CorridorPath = {
   exitHeight?: number;
   /**
    * Lateral offset at birth. Negative starts the card across the axis so the
-   * centre never opens up — see note 3 above. @default -11
+   * centre never opens up, see note 3 above. @default -11
    */
   railBirth?: number;
   /** Lateral offset once the rails have finished opening. @default 44 */
@@ -127,7 +126,7 @@ export type ImageStreamHeroProps = {
   images: StreamImage[];
   /**
    * Cards on each rail at once. More cards means a denser corridor, not a
-   * faster one — spacing is derived from this and `speed`. Drop it far below
+   * faster one, spacing is derived from this and `speed`. Drop it far below
    * the default and consecutive cards grow too fast to stay overlapped near
    * the exit, which tears a gap in the ribbon.
    * @default 9
@@ -147,7 +146,7 @@ export type ImageStreamHeroProps = {
   path?: CorridorPath;
   /**
    * Load the cards eagerly. Every card is on screen from the first frame, so
-   * when the corridor is the page's hero this should be on — lazy loading
+   * when the corridor is the page's hero this should be on, lazy loading
    * defers requests the browser could otherwise start immediately.
    * @default false
    */

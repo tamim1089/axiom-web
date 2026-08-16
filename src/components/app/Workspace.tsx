@@ -35,7 +35,7 @@ export function Workspace({
     void load()
   }, [load])
 
-  // A finished upload drops straight into the grid — rescanning the whole
+  // A finished upload drops straight into the grid, rescanning the whole
   // history to discover a file we just created would be absurd.
   useEffect(() => setOnUploaded(addFile), [setOnUploaded, addFile])
 
