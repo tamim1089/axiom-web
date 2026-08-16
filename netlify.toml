@@ -1,6 +1,14 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  # Pinned, not left to Netlify's rolling default. The build runs `tsc -b`
+  # against TypeScript 6 and Vite 8 (rolldown), which need a current Node; an
+  # image default that drifts older fails the build with an error that looks
+  # like a code problem rather than an environment one.
+  NODE_VERSION = "22"
 
 [build.processing]
   # Pages are already emitted as directories (app/index.html), so paths are
