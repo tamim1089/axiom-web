@@ -140,7 +140,7 @@ export function Preview({
         </button>
       </header>
 
-      <div className="relative flex min-h-0 flex-1 items-center justify-center p-4 sm:p-8">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-4 sm:px-20 sm:py-8">
         <StepButton side="left" onClick={() => onStep(-1)} />
 
         {!viewable ? (
@@ -158,13 +158,13 @@ export function Preview({
           spinner
         ) : source.kind === 'text' ? (
           <Suspense fallback={spinner}>
-            <div className="h-full w-full max-w-6xl">
+            <div className="h-full w-full">
               <CodeViewer name={file.name} text={source.text} />
             </div>
           </Suspense>
         ) : file.kind === 'video' ? (
           <Suspense fallback={spinner}>
-            <div className="flex h-full w-full max-w-6xl items-center">
+            <div className="flex h-full w-full items-center justify-center">
               <VideoPlayer file={file} src={source.url} onError={setError} />
             </div>
           </Suspense>
