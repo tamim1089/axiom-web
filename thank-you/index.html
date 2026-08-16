@@ -11,7 +11,7 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';
-               script-src 'self' https://www.googletagmanager.com;
+               script-src 'self' 'sha256-dIKkOEmCXaxufLI9PqVH9cHtly73Y1FKwscuv/pWWTI=' https://www.googletagmanager.com;
                style-src 'self' 'unsafe-inline';
                font-src 'self';
                img-src 'self' data: https://www.google-analytics.com;
@@ -42,6 +42,21 @@
     <meta name="twitter:title" content="Thank you. We reply within one business day | Axiom" />
     <meta name="twitter:description" content="Your message reached us. A person reads every enquiry and replies within one business day." />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og.jpg" />
+    <script>
+      // Applied before first paint so a dark-theme visitor never gets a white
+      // flash while the bundle loads. Mirrors applyTheme() in theme-switcher.
+      (function () {
+        try {
+          var t = localStorage.getItem('axiom.theme') || 'system'
+          var dark =
+            t === 'dark' ||
+            (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.add(dark ? 'dark' : 'light')
+        } catch (e) {
+          document.documentElement.classList.add('light')
+        }
+      })()
+    </script>
   </head>
   <body>
     <a

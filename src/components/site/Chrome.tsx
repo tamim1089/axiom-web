@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { GithubIcon, InstagramIcon } from './BrandIcons'
 import { Wordmark } from '@/components/Mark'
+import { ThemeSwitcher } from '@/components/ui/theme-switcher'
 import { NAV, SITE } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +40,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitcher className="hidden sm:flex" />
           <a
             href="/app"
             className="tap hidden gap-2 rounded-xl bg-ink px-5 text-body font-medium text-paper transition-opacity hover:opacity-90 sm:inline-flex"
@@ -69,6 +71,10 @@ export function SiteHeader() {
               {item.label}
             </a>
           ))}
+          <div className="flex items-center justify-between pt-4">
+            <span className="text-body text-graphite">Appearance</span>
+            <ThemeSwitcher />
+          </div>
         </nav>
       )}
     </header>

@@ -157,6 +157,65 @@
   }
 }
 
+
+/* ── dark theme ───────────────────────────────────────────────────────────
+ * Every colour in the app is already a token, so a theme is just a second set
+ * of values for the same names. Nothing downstream needs to know.
+ *
+ * Not a straight inversion. Pure white on pure black vibrates and makes text
+ * look thinner than it is, so ink lands slightly under white, paper slightly
+ * above black, and the accent is lifted because the same blue that reads
+ * confident on white reads muddy on a dark ground.
+ *
+ * `.dark` is set on <html> by the switcher. `.light` exists so an explicit
+ * light choice can win over a dark system preference.
+ * ──────────────────────────────────────────────────────────────────────── */
+@layer base {
+  .dark {
+    --color-ink: #f2f3f5;
+    --color-graphite: #b7bcc4;
+    --color-paper: #0c0d0f;
+    --color-mist: #17191d;
+    --color-titanium: #8d949e;
+    --color-line: #262a30;
+    --color-signal: #4d95ff;
+    --color-signal-soft: #12203a;
+
+    --color-background: var(--color-paper);
+    --color-foreground: var(--color-ink);
+    --color-muted: var(--color-mist);
+    --color-muted-foreground: var(--color-titanium);
+    --color-border: var(--color-line);
+
+    color-scheme: dark;
+  }
+
+  .light {
+    color-scheme: light;
+  }
+
+  /* Themed surfaces should cross-fade rather than snap, but only the colours.
+     Animating everything would drag every hover state along with it. */
+  html.theme-ready body,
+  html.theme-ready header,
+  html.theme-ready section,
+  html.theme-ready aside {
+    transition:
+      background-color 0.22s ease,
+      border-color 0.22s ease,
+      color 0.22s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html.theme-ready body,
+    html.theme-ready header,
+    html.theme-ready section,
+    html.theme-ready aside {
+      transition: none;
+    }
+  }
+}
+
 /* Section label. Sentence case, sized like real text, distinguished by weight
    and colour, which is the job the all-caps micro-label was doing badly. */
 @utility eyebrow {

@@ -3,6 +3,7 @@ import { ArrowDownUp, Download, LayoutGrid, List, Menu, Search, Trash2, Upload, 
 import { COLLECTIONS, useLibrary, visibleFiles, type SortKey } from '@/store/library'
 import { useTransfers } from '@/store/transfers'
 import { Mark } from '@/components/Mark'
+import { ThemeSwitcher } from '@/components/ui/theme-switcher'
 import { cn } from '@/lib/utils'
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -99,6 +100,8 @@ export function Toolbar({
           }}
         />
 
+        <ThemeSwitcher className="hidden lg:flex" />
+
         <div className="relative">
           <button
             onClick={(e) => {
@@ -125,6 +128,10 @@ export function Toolbar({
                 <p className="truncate text-small text-titanium">
                   {user.username ? `@${user.username}` : 'Signed in'}
                 </p>
+              </div>
+              <div className="flex items-center justify-between border-b border-line px-4 py-3 lg:hidden">
+                <span className="text-body text-graphite">Appearance</span>
+                <ThemeSwitcher />
               </div>
               {/* Says what actually happens: the key is erased from this
                   browser, which is the only place it ever existed. */}

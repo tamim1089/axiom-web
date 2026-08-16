@@ -23,6 +23,31 @@ const cache = new Map<string, string>()
 const failed = new Set<string>()
 const inflight = new Map<string, Promise<string | null>>()
 
+/* Telegram attaches several sizes: s=100, m=320, x=800, y=1280, w=2560, plus
+   crops, plus two that are not images at all (`i` is a stripped blur payload,
+   `j` is a vector outline).
+ 
+   Taking thumbs[0] meant taking whichever came first, usually the 100px one or
+   the strip, then stretching it across a 232px tile on a 2x display. That is
+   the blur. Pick the smallest size that still covers the tile at device pixel
+   density, and only fall back to the largest available if nothing does. */
+const TILE_CSS_PX = 232
+const NON_IMAGE = new Set(['i', 'j'])
+
+function pickThumbnail(thumbs: unknown[]): unknown | null {
+  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 3) : 2
+  const target = TILE_CSS_PX * dpr
+
+  const usable = (thumbs as { width?: number; type?: string }[])
+    .filter((t) => t && !NON_IMAGE.has(t.type ?? '') && Number.isFinite(t.width) && (t.width ?? 0) > 0)
+    .sort((a, b) => (a.width ?? 0) - (b.width ?? 0))
+
+  if (!usable.length) return null
+  // Smallest that covers the tile, so a grid of a hundred does not pull down
+  // 1280px images to draw them at 232.
+  return usable.find((t) => (t.width ?? 0) >= target) ?? usable[usable.length - 1]
+}
+
 async function loadThumb(file: AxiomFile): Promise<string | null> {
   if (cache.has(file.id)) return cache.get(file.id)!
   if (failed.has(file.id)) return null
@@ -37,9 +62,12 @@ async function loadThumb(file: AxiomFile): Promise<string | null> {
         failed.add(file.id)
         return null
       }
-      // Smallest available: these are decoration at ~200px on screen, and the
-      // grid can show a hundred at once.
-      const buf = await getClient().downloadAsBuffer(thumbs[0] as never)
+      const pick = pickThumbnail(thumbs)
+      if (!pick) {
+        failed.add(file.id)
+        return null
+      }
+      const buf = await getClient().downloadAsBuffer(pick as never)
       const url = URL.createObjectURL(new Blob([buf as BlobPart], { type: 'image/jpeg' }))
       cache.set(file.id, url)
       return url
@@ -87,8 +115,8 @@ export function Thumb({
         // The box is already sized by its container, but an intrinsic ratio
         // stops the element collapsing to zero height while the thumbnail is
         // still resolving from Telegram.
-        width={320}
-        height={320}
+        width={640}
+        height={640}
         loading="lazy"
         decoding="async"
         className={cn('h-full w-full object-cover', className)}

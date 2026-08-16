@@ -63,7 +63,7 @@ export function Landing() {
               className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  'radial-gradient(58% 48% at 50% 56%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.62) 52%, rgba(255,255,255,0) 82%)',
+                  'radial-gradient(58% 48% at 50% 56%, color-mix(in srgb, var(--color-paper) 92%, transparent) 0%, color-mix(in srgb, var(--color-paper) 62%, transparent) 52%, color-mix(in srgb, var(--color-paper) 0%, transparent) 82%)',
               }}
             />
             <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">

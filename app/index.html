@@ -18,7 +18,7 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';
-               script-src 'self' 'wasm-unsafe-eval';
+               script-src 'self' 'wasm-unsafe-eval' 'sha256-dIKkOEmCXaxufLI9PqVH9cHtly73Y1FKwscuv/pWWTI=';
                style-src 'self' 'unsafe-inline';
                font-src 'self';
                img-src 'self' data: blob:;
@@ -50,6 +50,21 @@
     <meta name="twitter:title" content="Open Axiom: sign in with Telegram" />
     <meta name="twitter:description" content="Scan a QR code with Telegram to open your files. No password and no account to create." />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og.jpg" />
+    <script>
+      // Applied before first paint so a dark-theme visitor never gets a white
+      // flash while the bundle loads. Mirrors applyTheme() in theme-switcher.
+      (function () {
+        try {
+          var t = localStorage.getItem('axiom.theme') || 'system'
+          var dark =
+            t === 'dark' ||
+            (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.add(dark ? 'dark' : 'light')
+        } catch (e) {
+          document.documentElement.classList.add('light')
+        }
+      })()
+    </script>
   </head>
   <body>
     <a
