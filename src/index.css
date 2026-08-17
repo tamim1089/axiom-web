@@ -219,10 +219,14 @@
 /* Section label. Sentence case, sized like real text, distinguished by weight
    and colour, which is the job the all-caps micro-label was doing badly. */
 @utility eyebrow {
-  font-size: var(--text-small);
+  /* One step above body, not a heading. It labels the section it sits over, so
+     it should register before the eye reaches the headline without competing
+     with it. Fluid on the same curve as everything else: 18px on a phone,
+     21px on a wide screen. */
+  font-size: clamp(1.125rem, 1.05rem + 0.34vw, 1.3125rem);
   font-weight: 500;
   color: var(--color-signal);
-  letter-spacing: 0;
+  letter-spacing: -0.005em;
   text-transform: none;
 }
 
