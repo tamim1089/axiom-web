@@ -58,7 +58,8 @@ type LibraryStore = {
   removeSelected: () => Promise<void>
 
   loadFolders: () => Promise<void>
-  createFolder: (name: string, parent?: number) => void
+  /** The new folder's id, or undefined if the name cleaned to nothing. */
+  createFolder: (name: string, parent?: number) => number | undefined
   renameFolder: (id: number, name: string) => void
   deleteFolder: (id: number) => void
   moveFolder: (id: number, parent: number) => void
@@ -199,7 +200,17 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
     persist(remote.folders, remote.clock)
   },
 
-  createFolder: (name, parent = ROOT) => commit(get, set, (s) => tree.createFolder(s, name, parent)),
+  /* Returns the id rather than leaving the caller to work it out. A caller
+     that files a selection into "the folder just created" has to know which
+     one that is, and the only handle it had was the last element of the array,
+     which is the right answer only while nothing goes wrong. A name of "///"
+     cleans to nothing and creates no folder at all, and then the last element
+     is some unrelated folder the user never chose. */
+  createFolder: (name, parent = ROOT) => {
+    const id = tree.nextId(get().folders)
+    commit(get, set, (s) => tree.createFolder(s, name, parent))
+    return get().folders.folders.some((f) => f.id === id) ? id : undefined
+  },
   renameFolder: (id, name) => commit(get, set, (s) => tree.renameFolder(s, id, name)),
   moveFolder: (id, parent) => commit(get, set, (s) => tree.moveFolder(s, id, parent)),
 

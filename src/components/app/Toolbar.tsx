@@ -344,10 +344,12 @@ function MoveMenu() {
                 setOpen(false)
                 const name = prompt('New folder')
                 if (!name?.trim()) return
-                // The new folder's id is the one the store is about to mint.
-                createFolder(name)
-                const created = useLibrary.getState().folders.folders.at(-1)
-                if (created) fileSelected(created.id)
+                // Only file the selection if a folder was actually created.
+                // A name that survives trim() can still clean to nothing, and
+                // filing into "the last folder in the list" then moves files
+                // somewhere nobody asked for.
+                const created = createFolder(name)
+                if (created !== undefined) fileSelected(created)
               }}
               className="tap w-full gap-2 px-3.5 text-left text-body font-medium text-signal hover:bg-mist"
             >
