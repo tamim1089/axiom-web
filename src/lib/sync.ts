@@ -156,6 +156,10 @@ async function secret(): Promise<Uint8Array | null> {
 
   try {
     const client = getClient()
+    // getVaultId only ever returns a channel this account created (see
+    // vault.ts), so the key we read below was necessarily written by the
+    // user's own devices — an attacker cannot pre-plant one in a channel we
+    // were merely invited into, because such a channel is never our vault.
     const vault = await getVaultId()
 
     // A pinned message is the natural home: one per channel, trivially found,
@@ -202,6 +206,18 @@ async function key(): Promise<CryptoKey | null> {
 /** True when a sync endpoint is configured for this deployment. */
 export const syncEnabled = (): boolean => import.meta.env.VITE_SYNC_ENABLED === 'true'
 
+/**
+ * Bind the last-write-wins clock to the ciphertext as additional authenticated
+ * data. The clock travels beside the payload in plaintext JSON (the server
+ * orders writes by it and cannot read the payload), so without this a malicious
+ * or compromised server could pair an *old but genuine* ciphertext with an
+ * inflated clock and drive a rollback: the client would authenticate the stale
+ * payload, see the higher clock, and overwrite newer state. Feeding the clock
+ * as AAD makes any clock the writer did not sign fail decryption instead.
+ */
+const clockAad = (clock: number): BufferSource =>
+  new TextEncoder().encode(`axiom.sync.clock.v1:${clock}`)
+
 export async function pullOverlay(): Promise<Overlay | null> {
   if (!syncEnabled()) return null
   try {
@@ -215,16 +231,19 @@ export async function pullOverlay(): Promise<Overlay | null> {
 
     const { payload, clock } = (await res.json()) as { payload?: string; clock?: number }
     if (!payload) return emptyOverlay()
+    const serverClock = typeof clock === 'number' ? clock : 0
 
     const blob = fromB64(payload)
-    // First 12 bytes are the GCM nonce, generated fresh per write.
+    // First 12 bytes are the GCM nonce, generated fresh per write. The clock is
+    // bound in as AAD, so a clock the writer never signed fails here and the
+    // stale payload behind it is discarded rather than applied as a rollback.
     const plain = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: blob.slice(0, 12) as BufferSource },
+      { name: 'AES-GCM', iv: blob.slice(0, 12) as BufferSource, additionalData: clockAad(serverClock) },
       k,
       blob.slice(12) as BufferSource,
     )
     return {
-      clock: typeof clock === 'number' ? clock : 0,
+      clock: serverClock,
       folders: await unframe(new Uint8Array(plain)),
       updatedAt: Date.now(),
     }
@@ -244,7 +263,7 @@ export async function pushOverlay(overlay: Overlay): Promise<boolean> {
 
     const iv = crypto.getRandomValues(new Uint8Array(12))
     const cipher = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv as BufferSource },
+      { name: 'AES-GCM', iv: iv as BufferSource, additionalData: clockAad(overlay.clock) },
       k,
       (await frame(overlay.folders)) as BufferSource,
     )

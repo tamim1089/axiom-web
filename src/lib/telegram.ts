@@ -32,6 +32,15 @@ export function getClient(): TelegramClient {
       apiId,
       apiHash,
       storage: 'axiom.session',
+      // Names the session in the "Link Desktop Device" confirmation and in
+      // Telegram's active-sessions list. Left unset, mtcute reports a generic
+      // "Telegram", so someone scanning the code cannot tell a real Axiom
+      // sign-in from a phisher holding up their own QR. Branding the device
+      // makes the prompt the user confirms actually say what they are joining.
+      initConnectionOptions: {
+        deviceModel: 'Axiom',
+        appVersion: '1.0.0',
+      },
     })
   }
   return instance

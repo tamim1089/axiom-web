@@ -84,9 +84,14 @@ export async function PUT(request: Request): Promise<Response> {
     return json({ error: 'Sync is not configured for this deployment' }, 503)
   }
 
+  // x-real-ip is set by Vercel's edge to the true client address and overrides
+  // anything the client sent. x-forwarded-for's FIRST hop is client-spoofable,
+  // so keying the limiter on it would hand out a fresh bucket per forged header
+  // and defeat the limit; fall back to the LAST hop the proxy appended, never
+  // the first.
   const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     request.headers.get('x-real-ip') ||
+    request.headers.get('x-forwarded-for')?.split(',').pop()?.trim() ||
     'unknown'
   if (rateLimited(ip, Date.now())) return json({ error: 'Slow down' }, 429)
 
