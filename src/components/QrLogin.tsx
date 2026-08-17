@@ -88,7 +88,11 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
             errorCorrectionLevel: 'M',
             margin: 0,
             width: 640,
-            color: { dark: '#0a0a0bff', light: '#00000000' },
+            // Fixed colours in both themes. A QR is a scanning target, not a
+            // surface: decoders expect dark modules on a light ground, and a
+            // transparent background inherits whatever is behind it, which in
+            // dark mode made the code black on near-black and unscannable.
+            color: { dark: '#0a0a0bff', light: '#ffffffff' },
           })
             .then(setQrPng)
             .catch(() => setQrPng(null))
@@ -202,7 +206,7 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
 
             {/* The QR plate keeps a fixed footprint across every state, so the
                 layout never jumps between connecting, live, and scanned. */}
-            <div className="relative mt-10 flex size-72 items-center justify-center rounded-3xl border border-line bg-mist">
+            <div className="relative mt-10 flex size-72 items-center justify-center rounded-3xl border border-line bg-white">
               {state.kind === 'qr' && qrPng ? (
                 <img src={qrPng} alt="Telegram login QR code" width={640} height={640} className="size-60" />
               ) : state.kind === 'error' ? (
