@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowDownUp, Download, LayoutGrid, List, Menu, Search, Trash2, Upload, X } from 'lucide-react'
+import {
+  ArrowDownUp,
+  Download,
+  FolderInput,
+  LayoutGrid,
+  List,
+  Menu,
+  Search,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react'
 import { COLLECTIONS, useLibrary, visibleFiles, type SortKey } from '@/store/library'
+import { pathOf, ROOT } from '@/lib/folders'
 import { useTransfers } from '@/store/transfers'
 import { Mark } from '@/components/Mark'
 import { ThemeSwitcher } from '@/components/ui/theme-switcher'
@@ -31,7 +43,10 @@ export function Toolbar({
   const enqueueUploads = useTransfers((s) => s.enqueueUploads)
   const enqueueDownload = useTransfers((s) => s.enqueueDownload)
 
-  const label = COLLECTIONS.find((c) => c.key === store.collection)?.label ?? 'All files'
+  const trail = store.folderId === null ? [] : pathOf(store.folders, store.folderId)
+  const label = trail.length
+    ? trail[trail.length - 1].name
+    : (COLLECTIONS.find((c) => c.key === store.collection)?.label ?? 'All files')
   const selecting = selectedFiles.length > 0
 
   // Dismiss the account menu on any outside click, the behaviour every menu
@@ -161,6 +176,7 @@ export function Toolbar({
             </button>
             <span className="text-body font-medium">{selectedFiles.length} selected</span>
             <div className="ml-auto flex items-center gap-2">
+              <MoveMenu />
               <button
                 onClick={() => selectedFiles.forEach(enqueueDownload)}
                 className="tap gap-2 rounded-xl px-4 text-body transition-colors hover:bg-mist"
@@ -187,7 +203,33 @@ export function Toolbar({
           </>
         ) : (
           <>
-            <h1 className="shrink-0 whitespace-nowrap text-body font-medium">{label}</h1>
+            {/* A breadcrumb only where there is a trail. Collections are one
+                level deep, so drawing "Home ›" in front of them is noise. */}
+            <nav aria-label="Location" className="flex min-w-0 items-center gap-1.5">
+              {trail.length > 0 && (
+                <>
+                  <button
+                    onClick={() => store.setCollection('all')}
+                    className="hidden shrink-0 text-body text-titanium transition-colors hover:text-ink sm:inline"
+                  >
+                    All files
+                  </button>
+                  {trail.slice(0, -1).map((f) => (
+                    <span key={f.id} className="hidden shrink-0 items-center gap-1.5 sm:flex">
+                      <span className="text-titanium/60">/</span>
+                      <button
+                        onClick={() => store.setFolder(f.id)}
+                        className="max-w-32 truncate text-body text-titanium transition-colors hover:text-ink"
+                      >
+                        {f.name}
+                      </button>
+                    </span>
+                  ))}
+                  <span className="hidden shrink-0 text-titanium/60 sm:inline">/</span>
+                </>
+              )}
+              <h1 className="truncate text-body font-medium">{label}</h1>
+            </nav>
             <span className="shrink-0 whitespace-nowrap text-small tabular-nums text-titanium">{visible.length}</span>
 
             <div className="ml-auto flex items-center gap-1.5">
@@ -245,5 +287,96 @@ export function Toolbar({
         )}
       </div>
     </header>
+  )
+}
+
+/* Filing is a menu rather than a drag target. Dragging works for one file on a
+   wide screen and for nothing else: it has no keyboard equivalent, no touch
+   equivalent, and no way to express "these forty". */
+function MoveMenu() {
+  const folders = useLibrary((s) => s.folders)
+  const fileSelected = useLibrary((s) => s.fileSelected)
+  const createFolder = useLibrary((s) => s.createFolder)
+  const [open, setOpen] = useState(false)
+
+  // Flattened with indent depth, so the tree reads as a tree in a flat list.
+  const rows: { id: number; name: string; depth: number }[] = []
+  const walk = (parent: number, depth: number) => {
+    for (const f of folders.folders
+      .filter((f) => f.parent === parent)
+      .sort((a, b) => a.name.localeCompare(b.name))) {
+      rows.push({ id: f.id, name: f.name, depth })
+      walk(f.id, depth + 1)
+    }
+  }
+  walk(ROOT, 0)
+
+  const choose = (id: number) => {
+    setOpen(false)
+    fileSelected(id)
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="tap gap-2 rounded-xl px-4 text-body transition-colors hover:bg-mist"
+      >
+        <FolderInput className="size-5" strokeWidth={1.75} />
+        <span className="hidden sm:inline">Move to</span>
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            role="menu"
+            className="absolute right-0 top-12 z-50 max-h-80 w-64 overflow-y-auto rounded-2xl border border-line bg-paper py-1.5 shadow-[0_12px_40px_rgba(10,10,11,0.16)]"
+          >
+            <button
+              role="menuitem"
+              onClick={() => {
+                setOpen(false)
+                const name = prompt('New folder')
+                if (!name?.trim()) return
+                // The new folder's id is the one the store is about to mint.
+                createFolder(name)
+                const created = useLibrary.getState().folders.folders.at(-1)
+                if (created) fileSelected(created.id)
+              }}
+              className="tap w-full gap-2 px-3.5 text-left text-body font-medium text-signal hover:bg-mist"
+            >
+              New folder with these
+            </button>
+
+            <div className="my-1.5 h-px bg-line" />
+
+            <button
+              role="menuitem"
+              onClick={() => choose(ROOT)}
+              className="tap w-full px-3.5 text-left text-body hover:bg-mist"
+            >
+              All files
+            </button>
+            {rows.map((row) => (
+              <button
+                key={row.id}
+                role="menuitem"
+                onClick={() => choose(row.id)}
+                style={{ paddingLeft: 14 + row.depth * 14 }}
+                className="tap w-full truncate pr-3.5 text-left text-body hover:bg-mist"
+              >
+                {row.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }

@@ -1,13 +1,22 @@
 import { create } from 'zustand'
 import { scanFiles, deleteFiles, type AxiomFile } from '@/lib/storage'
 import type { FileKind } from '@/lib/format'
+import * as tree from '@/lib/folders'
+import { ROOT, type FolderState } from '@/lib/folders'
+import { emptyOverlay, pullOverlay, pushOverlay, syncEnabled } from '@/lib/sync'
 
 /* ── the library ──────────────────────────────────────────────────────────
- * Collections are derived from what a file *is*, not from folders the user
- * has to build first. A new account has working navigation on day one, and
- * nothing here needs storage of its own. Which matters when there is no
- * server to keep it in. Real folders arrive later as an overlay on top.
+ * Collections are derived from what a file *is*, so a new account has working
+ * navigation on day one without building anything. Folders sit on top for the
+ * organising a person actually wants to do, and are an overlay: filing a file
+ * changes this map, never the file.
+ *
+ * Folders live in localStorage first and sync second. That order matters. The
+ * feature has to work on a deployment with no sync configured at all, and a
+ * network that is down must never look like folders that are gone.
  * ──────────────────────────────────────────────────────────────────────── */
+
+const FOLDER_CACHE = 'axiom.folders.v1'
 
 export type Collection = 'all' | 'recent' | FileKind
 export type SortKey = 'date' | 'name' | 'size'
@@ -30,6 +39,11 @@ type LibraryStore = {
   loading: boolean
   error?: string
   collection: Collection
+  /** Folder being browsed. null means a collection is showing instead. */
+  folderId: number | null
+  folders: FolderState
+  /** Bumped on every folder edit; the higher clock wins across devices. */
+  clock: number
   query: string
   sort: SortKey
   ascending: boolean
@@ -42,6 +56,14 @@ type LibraryStore = {
   load: () => Promise<void>
   addFile: (file: AxiomFile) => void
   removeSelected: () => Promise<void>
+
+  loadFolders: () => Promise<void>
+  createFolder: (name: string, parent?: number) => void
+  renameFolder: (id: number, name: string) => void
+  deleteFolder: (id: number) => void
+  moveFolder: (id: number, parent: number) => void
+  fileSelected: (folder: number) => void
+  setFolder: (id: number | null) => void
 
   setCollection: (c: Collection) => void
   setQuery: (q: string) => void
@@ -57,10 +79,66 @@ type LibraryStore = {
 
 let scanToken = 0
 
+/** Read the local copy. A broken cache is discarded, never surfaced. */
+function cachedFolders(): FolderState {
+  try {
+    const raw = localStorage.getItem(FOLDER_CACHE)
+    if (!raw) return tree.emptyFolders()
+    const parsed = JSON.parse(raw) as { folders?: FolderState; clock?: number }
+    return parsed.folders ?? tree.emptyFolders()
+  } catch {
+    return tree.emptyFolders()
+  }
+}
+
+function cachedClock(): number {
+  try {
+    const raw = localStorage.getItem(FOLDER_CACHE)
+    return raw ? ((JSON.parse(raw) as { clock?: number }).clock ?? 0) : 0
+  } catch {
+    return 0
+  }
+}
+
+/* Writes land locally at once and remotely on a trailing timer. Filing ten
+   files in a row is one upload, not ten, and the local copy is already correct
+   before the first request leaves. */
+let pushTimer: ReturnType<typeof setTimeout> | undefined
+
+function persist(folders: FolderState, clock: number): void {
+  try {
+    localStorage.setItem(FOLDER_CACHE, JSON.stringify({ folders, clock }))
+  } catch {
+    /* Private mode, or the quota is full. Folders still work for this session. */
+  }
+  if (!syncEnabled()) return
+  clearTimeout(pushTimer)
+  pushTimer = setTimeout(() => {
+    void pushOverlay({ ...emptyOverlay(), folders, clock, updatedAt: Date.now() })
+  }, 1200)
+}
+
+/** Apply a pure tree operation, then persist. Every folder edit goes through here. */
+function commit(
+  get: () => LibraryStore,
+  set: (partial: Partial<LibraryStore>) => void,
+  change: (state: FolderState) => FolderState,
+): void {
+  const { folders, clock } = get()
+  const next = change(folders)
+  if (next === folders) return
+  const bumped = clock + 1
+  set({ folders: next, clock: bumped })
+  persist(next, bumped)
+}
+
 export const useLibrary = create<LibraryStore>((set, get) => ({
   files: [],
   loading: false,
   collection: 'all',
+  folderId: null,
+  folders: cachedFolders(),
+  clock: cachedClock(),
   query: '',
   sort: 'date',
   ascending: false,
@@ -109,7 +187,40 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
     }
   },
 
-  setCollection: (collection) => set({ collection, selected: new Set(), anchor: undefined }),
+  /* Remote is consulted once, on load, and only wins on a strictly higher
+     clock. A device that has been offline making changes keeps them. */
+  loadFolders: async () => {
+    if (!syncEnabled()) return
+    const remote = await pullOverlay()
+    if (!remote) return
+    const { clock } = get()
+    if (remote.clock <= clock) return
+    set({ folders: remote.folders, clock: remote.clock })
+    persist(remote.folders, remote.clock)
+  },
+
+  createFolder: (name, parent = ROOT) => commit(get, set, (s) => tree.createFolder(s, name, parent)),
+  renameFolder: (id, name) => commit(get, set, (s) => tree.renameFolder(s, id, name)),
+  moveFolder: (id, parent) => commit(get, set, (s) => tree.moveFolder(s, id, parent)),
+
+  deleteFolder: (id) => {
+    commit(get, set, (s) => tree.deleteFolder(s, id))
+    // Do not leave the user staring at a folder that no longer exists.
+    if (get().folderId === id) set({ folderId: null, collection: 'all' })
+  },
+
+  fileSelected: (folder) => {
+    const ids = [...get().selected]
+    if (!ids.length) return
+    commit(get, set, (s) => tree.placeFiles(s, ids, folder))
+    set({ selected: new Set(), anchor: undefined })
+  },
+
+  setFolder: (folderId) =>
+    set({ folderId, collection: 'all', selected: new Set(), anchor: undefined }),
+
+  setCollection: (collection) =>
+    set({ collection, folderId: null, selected: new Set(), anchor: undefined }),
   setQuery: (query) => set({ query }),
   setSort: (sort) => set({ sort }),
   toggleDirection: () => set((s) => ({ ascending: !s.ascending })),
@@ -147,12 +258,16 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
   clearSelection: () => set({ selected: new Set(), anchor: undefined }),
 }))
 
-/** The visible list: collection filter, then search, then sort. */
+/** The visible list: folder or collection, then search, then sort. */
 export function visibleFiles(s: LibraryStore): AxiomFile[] {
   const q = s.query.trim().toLowerCase()
   let out = s.files
 
-  if (s.collection === 'recent') {
+  if (s.folderId !== null) {
+    // Exactly this folder, not its subfolders. A folder that silently included
+    // everything beneath it would make moving a file look like it did nothing.
+    out = out.filter((f) => (s.folders.placement[f.id] ?? ROOT) === s.folderId)
+  } else if (s.collection === 'recent') {
     const weekAgo = Date.now() - 7 * 86400_000
     out = out.filter((f) => f.date.getTime() >= weekAgo)
   } else if (s.collection !== 'all') {

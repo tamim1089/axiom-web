@@ -11,7 +11,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 export const DESCRIPTION =
-  'Axiom is a personal cloud that runs entirely in your browser and keeps your files in your own Telegram account. No server in between.'
+  'Axiom is a personal cloud that runs entirely in your browser and keeps your files in your own Telegram account.'
 
 export const FAQ = [
   {

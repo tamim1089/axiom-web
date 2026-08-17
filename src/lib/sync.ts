@@ -1,5 +1,6 @@
 import { getClient } from './telegram'
 import { getVaultId } from './vault'
+import { decodeFolders, emptyFolders, encodeFolders, type FolderState } from './folders'
 
 /* ── metadata sync ────────────────────────────────────────────────────────
  * Folders, tags, favourites and view preferences, synced between a user's
@@ -35,21 +36,68 @@ const KEY_CACHE = 'axiom.sync.key'
 export type Overlay = {
   /** Bumped on every local change; the higher clock wins a conflict. */
   clock: number
-  /** messageId → folder path. */
-  folders: Record<string, string>
-  /** messageId → tags. */
-  tags: Record<string, string[]>
-  favourites: string[]
+  folders: FolderState
   updatedAt: number
 }
 
 export const emptyOverlay = (): Overlay => ({
   clock: 0,
-  folders: {},
-  tags: {},
-  favourites: [],
+  folders: emptyFolders(),
   updatedAt: 0,
 })
+
+/* ── payload framing ───────────────────────────────────────────────────────
+ *
+ *   u8   container version
+ *   u8   0 = stored, 1 = gzip
+ *   ...  the folder blob from folders.ts, compressed or not
+ *
+ * The compression flag is written rather than assumed, so a browser without
+ * CompressionStream can still write a payload every other device can read.
+ * gzip on top of the varint encoding is not redundant: repeated folder slots
+ * and runs of one-byte deltas are exactly what its entropy coder is for, and
+ * it typically halves an already small blob.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+const CONTAINER = 1
+const STORED = 0
+const GZIP = 1
+
+async function through(bytes: Uint8Array, mode: 'gzip' | 'gunzip'): Promise<Uint8Array> {
+  const Stream = mode === 'gzip' ? globalThis.CompressionStream : globalThis.DecompressionStream
+  const stream = new Stream('gzip') as unknown as ReadableWritablePair<Uint8Array, Uint8Array>
+  const out = new Response(new Blob([bytes as BufferSource]).stream().pipeThrough(stream))
+  return new Uint8Array(await out.arrayBuffer())
+}
+
+async function frame(state: FolderState): Promise<Uint8Array> {
+  const body = encodeFolders(state)
+  let flag = STORED
+  let payload = body
+  if (typeof globalThis.CompressionStream !== 'undefined') {
+    try {
+      const packed = await through(body, 'gzip')
+      // Tiny blobs come out larger than they went in; keep whichever is smaller.
+      if (packed.length < body.length) {
+        payload = packed
+        flag = GZIP
+      }
+    } catch {
+      /* Fall through to stored. Correctness never depends on compressing. */
+    }
+  }
+  const out = new Uint8Array(2 + payload.length)
+  out[0] = CONTAINER
+  out[1] = flag
+  out.set(payload, 2)
+  return out
+}
+
+async function unframe(bytes: Uint8Array): Promise<FolderState> {
+  if (bytes.length < 2 || bytes[0] !== CONTAINER) throw new Error('unknown payload')
+  const body = bytes.subarray(2)
+  return decodeFolders(bytes[1] === GZIP ? await through(body, 'gunzip') : body)
+}
 
 /* ── key management ─────────────────────────────────────────────────────── */
 
@@ -165,7 +213,7 @@ export async function pullOverlay(): Promise<Overlay | null> {
     if (res.status === 404) return emptyOverlay()
     if (!res.ok) return null
 
-    const { payload } = (await res.json()) as { payload?: string }
+    const { payload, clock } = (await res.json()) as { payload?: string; clock?: number }
     if (!payload) return emptyOverlay()
 
     const blob = fromB64(payload)
@@ -175,7 +223,11 @@ export async function pullOverlay(): Promise<Overlay | null> {
       k,
       blob.slice(12) as BufferSource,
     )
-    return JSON.parse(new TextDecoder().decode(plain)) as Overlay
+    return {
+      clock: typeof clock === 'number' ? clock : 0,
+      folders: await unframe(new Uint8Array(plain)),
+      updatedAt: Date.now(),
+    }
   } catch {
     // Tampered, truncated, or from a different key. The channel is still the
     // truth, so a bad cache is discarded rather than surfaced.
@@ -194,7 +246,7 @@ export async function pushOverlay(overlay: Overlay): Promise<boolean> {
     const cipher = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv: iv as BufferSource },
       k,
-      new TextEncoder().encode(JSON.stringify({ ...overlay, updatedAt: Date.now() })),
+      (await frame(overlay.folders)) as BufferSource,
     )
 
     const packed = new Uint8Array(12 + cipher.byteLength)

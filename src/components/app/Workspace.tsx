@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Loader2, Upload, X } from 'lucide-react'
+import { FolderOpen, Loader2, Upload, X } from 'lucide-react'
 import { useLibrary, visibleFiles } from '@/store/library'
 import { useTransfers } from '@/store/transfers'
 import { Sidebar } from './Sidebar'
@@ -30,10 +30,14 @@ export function Workspace({
 
   const load = store.load
   const addFile = store.addFile
+  const loadFolders = store.loadFolders
 
   useEffect(() => {
     void load()
-  }, [load])
+    // Folders are already on screen from the local copy; this only reconciles
+    // with another device, so it is deliberately not awaited alongside the scan.
+    void loadFolders()
+  }, [load, loadFolders])
 
   // A finished upload drops straight into the grid, rescanning the whole
   // history to discover a file we just created would be absurd.
@@ -208,6 +212,22 @@ export function Workspace({
                 className="tap text-body text-titanium underline-offset-4 hover:text-ink hover:underline"
               >
                 Clear search
+              </button>
+            </Centered>
+          ) : store.folderId !== null ? (
+            <Centered>
+              <div className="rounded-2xl border border-dashed border-line p-5">
+                <FolderOpen className="size-9 text-titanium" strokeWidth={1.5} />
+              </div>
+              <p className="text-[1.5rem] font-semibold">This folder is empty</p>
+              <p className="max-w-sm text-center text-body leading-relaxed text-titanium">
+                Open a collection, select the files you want, then choose Move to.
+              </p>
+              <button
+                onClick={() => store.setCollection('all')}
+                className="tap mt-3 rounded-xl bg-ink px-6 text-body font-medium text-paper"
+              >
+                Browse all files
               </button>
             </Centered>
           ) : (
