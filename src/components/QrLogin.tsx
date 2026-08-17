@@ -18,6 +18,18 @@ type State =
   | { kind: 'done'; user: User }
   | { kind: 'error'; message: string }
 
+/* ── design harness ───────────────────────────────────────────────────────
+ * This page is the hardest one in the app to look at: it needs a phone to get
+ * past, and once a session exists it never renders again. So it was being
+ * iterated on blind, which is how a column sized for a laptop shipped with its
+ * last step under the fold on a phone.
+ *
+ * /app.html#signin fakes a live code and skips every network call, so the
+ * layout can be checked at any window size. Same idea as the workspace's
+ * #demo, and gated on DEV the same way, so it is dropped from production.
+ * ──────────────────────────────────────────────────────────────────────── */
+const HARNESS = import.meta.env.DEV && window.location.hash === '#signin'
+
 /** Countdown against the token's own expiry, so the UI never lies about staleness. */
 function useSecondsLeft(expires?: Date) {
   const [left, setLeft] = useState(0)
@@ -48,6 +60,18 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
      should never be asked to scan again just because they reloaded the tab. */
   useEffect(() => {
     let cancelled = false
+    if (HARNESS) {
+      QRCode.toDataURL('https://t.me/login?token=harness', {
+        errorCorrectionLevel: 'M',
+        margin: 0,
+        width: 640,
+        color: { dark: '#0a0a0bff', light: '#ffffffff' },
+      })
+        .then(setQrPng)
+        .catch(() => setQrPng(null))
+      setState({ kind: 'qr', url: '', expires: new Date(Date.now() + 30_000) })
+      return
+    }
     ;(async () => {
       try {
         const me = await getClient().getMe()
@@ -155,8 +179,12 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <main className="min-h-screen bg-paper">
-      <header className="border-b border-line">
+    /* svh, not vh: on a phone vh is the tallest the viewport ever gets, so a
+       vh-sized column sits partly under the browser chrome until you scroll.
+       The page is sized to fit rather than to scroll, because everything on it
+       is needed at once, the code and the instructions for using it. */
+    <main className="flex min-h-[100svh] flex-col bg-paper">
+      <header className="shrink-0 border-b border-line">
         <div className="mx-auto flex h-16 max-w-6xl items-center px-6">
           <button
             onClick={onBack}
@@ -168,8 +196,14 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-lg flex-col items-center px-6 py-20 text-center">
-        <Mark className="size-14" />
+      {/* Every gap on this page is viewport-relative, because the page has a
+          fixed amount to say and a viewport that varies by a factor of three.
+          Fixed padding sized for a laptop pushes the last step off a short
+          window; sized for a short window it looks starved on a large one.
+          clamp() gives each gap a floor, a share of the height, and a ceiling,
+          so the column compresses in one motion instead of scrolling. */}
+      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-6 py-[clamp(0.75rem,2.5vh,3.5rem)] text-center">
+        <Mark className="size-[clamp(2.25rem,5.5vh,3.5rem)] shrink-0 [@media(max-height:660px)]:hidden" />
 
         {state.kind === 'password' ? (
           <>
@@ -198,17 +232,39 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
           </>
         ) : (
           <>
-            <h1 className="mt-8 text-[clamp(2rem,4vw,2.75rem)]">Open Axiom</h1>
-            <p className="mt-4 max-w-md text-lead leading-relaxed text-graphite">
-              Scan with the Telegram app on your phone. This links your storage to this
-              browser, no password, no account to create.
+            <h1 className="mt-[clamp(0.75rem,3vh,2rem)] text-[clamp(2rem,min(4vw,5.5vh),2.75rem)]">
+              Open Axiom
+            </h1>
+            {/* The old lead opened "Scan with the Telegram app on your phone",
+                which is step 1 and step 3 said again above the steps: four
+                lines on a phone, 118px, spent on the one instruction the page
+                repeats twice below. What is left is the part the steps do not
+                cover, which is what signing in costs you. */}
+            <p className="mt-[clamp(0.5rem,1.5vh,1rem)] max-w-md text-lead leading-relaxed text-graphite">
+              Links your storage to this browser. No password, no account to create.
             </p>
 
             {/* The QR plate keeps a fixed footprint across every state, so the
-                layout never jumps between connecting, live, and scanned. */}
-            <div className="relative mt-10 flex size-72 items-center justify-center rounded-3xl border border-line bg-white">
+                layout never jumps between connecting, live, and scanned.
+
+                It is the one element that can afford to give height back: a
+                code only has to be big enough for a phone camera to resolve.
+                31vh keeps it the largest thing on the page at every window
+                size, capped at 18rem so it stops growing once it is
+                comfortably scannable, and never falling below ~176px, which
+                is about six device pixels per module on a phone. */}
+            <div className="relative mt-[clamp(0.75rem,3vh,2.5rem)] flex size-[min(18rem,31vh)] shrink-0 items-center justify-center rounded-3xl border border-line bg-white">
               {state.kind === 'qr' && qrPng ? (
-                <img src={qrPng} alt="Telegram login QR code" width={640} height={640} className="size-60" />
+                /* Sized as a share of the plate rather than a fixed 15rem, so
+                   the quiet zone around the code stays proportional as the
+                   plate shrinks. */
+                <img
+                  src={qrPng}
+                  alt="Telegram login QR code"
+                  width={640}
+                  height={640}
+                  className="size-[83%]"
+                />
               ) : state.kind === 'error' ? (
                 <p className="px-8 text-small leading-relaxed text-titanium">
                   {state.message}
@@ -232,7 +288,9 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
             </div>
 
             {state.kind === 'qr' && (
-              <p className="mt-5 text-small text-titanium">Code refreshes in {seconds}s</p>
+              <p className="mt-[clamp(0.5rem,1.5vh,1.25rem)] text-small text-titanium">
+                Code refreshes in {seconds}s
+              </p>
             )}
 
             {/* Only failure needs a button now. The code fetches itself. */}
@@ -247,18 +305,30 @@ export function QrLogin({ onBack }: { onBack: () => void }) {
 
             {/* Numbered steps as real steps: the numeral is a token in its own
                 column, so the instruction text starts on one left edge instead
-                of being pushed around by "1." / "2." / "3." widths. */}
-            <ol className="mt-12 w-full space-y-5 text-left">
+                of being pushed around by "1." / "2." / "3." widths.
+
+                Compact rather than three across. Across is shorter, but step 2
+                is the longest line on the page and a third of a phone's width
+                wraps it to five lines against a one-line neighbour. Squeezing
+                the rows instead keeps every step on one or two lines at a size
+                that reads at arm's length, and still lands step 3 above the
+                fold on a short window.
+
+                The chip is ink on paper, not grey on mist: it is the only
+                thing that says which step you are on, and at 3:1 against the
+                background it was the first thing to disappear on a phone held
+                at an angle in daylight. */}
+            <ol className="mt-[clamp(0.875rem,3vh,3rem)] w-full space-y-[clamp(0.375rem,1.2vh,0.75rem)] text-left">
               {[
                 'Open Telegram on your phone',
                 'Go to Settings → Devices → Link Desktop Device',
                 'Point it at the code above',
               ].map((step, i) => (
-                <li key={step} className="flex items-center gap-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-mist text-small font-semibold text-graphite">
+                <li key={step} className="flex items-center gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-tiny font-semibold text-paper">
                     {i + 1}
                   </span>
-                  <span className="text-body leading-snug text-graphite">{step}</span>
+                  <span className="text-small leading-snug text-graphite">{step}</span>
                 </li>
               ))}
             </ol>

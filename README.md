@@ -191,7 +191,15 @@ iterating on layout painfully slow. `npm run dev` then visit **`/app.html#demo`*
 the workspace seeded with fabricated files — real `AxiomFile` records, so the
 grid, sorting, search, and selection run their actual code paths.
 
-Gated on `import.meta.env.DEV`, so it is dropped from production builds.
+**`/app.html#signin`** does the same for the sign-in page, which is harder to
+reach than the workspace: it needs a phone to get *past*, and once a session
+exists it never renders again. The harness fakes a live code and makes no
+network call, so the column can be checked at any window size. Iterating on it
+blind is how a layout sized for a laptop shipped with its last step under the
+fold on a phone.
+
+Both are gated on `import.meta.env.DEV`, so they are dropped from production
+builds.
 
 ## Sign-in flow
 
@@ -210,10 +218,15 @@ Done: landing page, QR sign-in (verified end to end against Telegram), and the
 workspace — scan, upload, download, delete, search, sort, grid/list, preview,
 selection, transfer queue, keyboard shortcuts.
 
+Folders are built (`lib/folders.ts`, and the tree, "Move to" menu and
+breadcrumb above it) but have **never been run against a real account**. The
+codec has its own tests and the build is clean; creating, nesting, filing and
+deleting still need one pass with a phone in hand. Until `VITE_SYNC_ENABLED` is
+set they live in one browser's `localStorage` and do not follow you to a second
+device.
+
 Not done:
 
-- **Folders.** The overlay design is settled (keyed by message id, stored as a
-  pinned JSON message) but not built. Collections cover navigation until then.
 - **Thumbnail prefetch.** Thumbnails load per tile on first render; a batched
   prefetch pass would make fast scrolling smoother.
 - **Streaming downloads on Safari/Firefox.** The Service Worker already serves
