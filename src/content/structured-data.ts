@@ -59,7 +59,7 @@ export function organizationSchema(opts: {
     name: 'Axiom',
     url: opts.url,
     logo: `${opts.url}/logo.png`,
-    image: `${opts.url}/og-v2.jpg`,
+    image: `${opts.url}/og-v3.jpg`,
     description: DESCRIPTION,
     email: opts.email,
     sameAs: opts.sameAs,
