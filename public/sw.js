@@ -126,11 +126,23 @@ async function serve(event) {
 
   if (!size) return new Response('Unknown file size', { status: 400 })
 
+  // mime and name arrive in the URL and trace back to Telegram-supplied file
+  // metadata, so treat them as untrusted. This origin holds the Telegram auth
+  // key, and these responses carry none of the page's CSP — so we must never
+  // hand the browser a /_stream reply it would execute as an active same-origin
+  // document. Only media is served inline with its own type; everything else is
+  // forced to an inert octet-stream download, and nosniff stops the browser
+  // from second-guessing either way.
+  const inlineOk = /^(audio|video|image)\//.test(mime)
+  const safeMime = inlineOk ? mime : 'application/octet-stream'
+  const asAttachment = download || !inlineOk
+
   const common = {
-    'Content-Type': mime,
+    'Content-Type': safeMime,
     'Accept-Ranges': 'bytes',
-    'Content-Disposition': contentDisposition(name, !download),
+    'Content-Disposition': contentDisposition(name, !asAttachment),
     'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
     // A stream URL is bearer-only for as long as the tab is open. If the app
     // ever embeds an external resource, the Referer header would carry the full
     // /_stream/ path (file id, name, size) to that third party; no-referrer on

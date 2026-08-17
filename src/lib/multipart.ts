@@ -64,6 +64,8 @@ export function decodeManifest(caption: string | undefined | null): PartManifest
     if (
       parsed?.v !== 1 ||
       typeof parsed.g !== 'string' ||
+      typeof parsed.n !== 'string' ||
+      typeof parsed.m !== 'string' ||
       typeof parsed.i !== 'number' ||
       typeof parsed.c !== 'number' ||
       typeof parsed.s !== 'number'
