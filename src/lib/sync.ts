@@ -156,6 +156,10 @@ async function secret(): Promise<Uint8Array | null> {
 
   try {
     const client = getClient()
+    // getVaultId only ever returns a channel this account created (see
+    // vault.ts), so the key we read below was necessarily written by the
+    // user's own devices — an attacker cannot pre-plant one in a channel we
+    // were merely invited into, because such a channel is never our vault.
     const vault = await getVaultId()
 
     // A pinned message is the natural home: one per channel, trivially found,

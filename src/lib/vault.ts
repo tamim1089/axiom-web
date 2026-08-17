@@ -17,6 +17,13 @@ import { getClient } from './telegram'
  * Resolution order: remembered id → search dialogs by title → create. The
  * localStorage entry is only a cache; wiping it costs one dialog scan, never
  * a duplicate channel or a lost file.
+ *
+ * A vault is trusted only if THIS account created it (`isCreator`). Title is
+ * how we spot a candidate, never why we trust it: anyone can create a channel
+ * titled "Axiom Storage" and get a user to join it, and a title-only match
+ * would then route that user's entire file store into a stranger's channel.
+ * A channel you merely joined has isCreator === false and is ignored, so the
+ * only channel Axiom will ever write to is one your own account owns.
  * ──────────────────────────────────────────────────────────────────────── */
 
 export const VAULT_TITLE = 'Axiom Storage'
@@ -32,19 +39,23 @@ async function findExisting(): Promise<number | null> {
   const cached = localStorage.getItem(CACHE_KEY)
   if (cached) {
     try {
-      // Confirm it still exists and we still have access; a channel deleted
-      // from another device would otherwise wedge every upload.
+      // Confirm it still exists, we still have access, and we own it. Verifying
+      // ownership here also heals a cache written by an older build that could
+      // adopt someone else's channel: a non-owned id is dropped, not trusted.
       const chat = await client.getChat(Number(cached))
-      if (chat) return Number(cached)
+      if (chat?.isCreator) return Number(cached)
+      localStorage.removeItem(CACHE_KEY)
     } catch {
       localStorage.removeItem(CACHE_KEY)
     }
   }
 
-  // Scan dialogs for a channel we created earlier on another device.
+  // Scan dialogs for a channel we created earlier on another device. Title
+  // finds the candidate; isCreator is what makes it ours — a channel we were
+  // only invited into is skipped no matter what it is called.
   for await (const dialog of client.iterDialogs({ limit: 400 })) {
-    const chat = dialog.peer as unknown as { title?: string; id: number }
-    if (chat?.title === VAULT_TITLE) {
+    const chat = dialog.peer as unknown as { title?: string; id: number; isCreator?: boolean }
+    if (chat?.title === VAULT_TITLE && chat.isCreator === true) {
       localStorage.setItem(CACHE_KEY, String(chat.id))
       return chat.id
     }

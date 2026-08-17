@@ -131,6 +131,11 @@ async function serve(event) {
     'Accept-Ranges': 'bytes',
     'Content-Disposition': contentDisposition(name, !download),
     'Cache-Control': 'no-store',
+    // A stream URL is bearer-only for as long as the tab is open. If the app
+    // ever embeds an external resource, the Referer header would carry the full
+    // /_stream/ path (file id, name, size) to that third party; no-referrer on
+    // the response keeps these URLs from leaving the origin.
+    'Referrer-Policy': 'no-referrer',
   }
 
   if (event.request.method === 'HEAD') {
